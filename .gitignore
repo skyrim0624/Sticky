@@ -1,0 +1,14 @@
+.build/
+.swiftpm/
+.DS_Store
+*.xcodeproj/xcuserdata/
+*.xcworkspace/xcuserdata/
+xcuserdata/
+*.xccheckout
+*.xcscmblueprint
+DerivedData/
+*.swp
+*~.nib
+*.mode1v3
+*.mode2v3
+*.pbxuser
