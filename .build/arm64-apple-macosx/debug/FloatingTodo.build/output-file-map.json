@@ -1,0 +1,61 @@
+{
+  "": {
+    "swift-dependencies": "/Users/andreas/FloatingTodo/.build/arm64-apple-macosx/debug/FloatingTodo.build/master.swiftdeps"
+  },
+  "/Users/andreas/FloatingTodo/FloatingTodo/AppDelegate.swift": {
+    "dependencies": "/Users/andreas/FloatingTodo/.build/arm64-apple-macosx/debug/FloatingTodo.build/AppDelegate.d",
+    "object": "/Users/andreas/FloatingTodo/.build/arm64-apple-macosx/debug/FloatingTodo.build/AppDelegate.swift.o",
+    "swiftmodule": "/Users/andreas/FloatingTodo/.build/arm64-apple-macosx/debug/FloatingTodo.build/AppDelegate~partial.swiftmodule",
+    "swift-dependencies": "/Users/andreas/FloatingTodo/.build/arm64-apple-macosx/debug/FloatingTodo.build/AppDelegate.swiftdeps",
+    "diagnostics": "/Users/andreas/FloatingTodo/.build/arm64-apple-macosx/debug/FloatingTodo.build/AppDelegate.dia"
+  },
+  "/Users/andreas/FloatingTodo/FloatingTodo/ClickThroughHostingView.swift": {
+    "dependencies": "/Users/andreas/FloatingTodo/.build/arm64-apple-macosx/debug/FloatingTodo.build/ClickThroughHostingView.d",
+    "object": "/Users/andreas/FloatingTodo/.build/arm64-apple-macosx/debug/FloatingTodo.build/ClickThroughHostingView.swift.o",
+    "swiftmodule": "/Users/andreas/FloatingTodo/.build/arm64-apple-macosx/debug/FloatingTodo.build/ClickThroughHostingView~partial.swiftmodule",
+    "swift-dependencies": "/Users/andreas/FloatingTodo/.build/arm64-apple-macosx/debug/FloatingTodo.build/ClickThroughHostingView.swiftdeps",
+    "diagnostics": "/Users/andreas/FloatingTodo/.build/arm64-apple-macosx/debug/FloatingTodo.build/ClickThroughHostingView.dia"
+  },
+  "/Users/andreas/FloatingTodo/FloatingTodo/ContentView.swift": {
+    "dependencies": "/Users/andreas/FloatingTodo/.build/arm64-apple-macosx/debug/FloatingTodo.build/ContentView.d",
+    "object": "/Users/andreas/FloatingTodo/.build/arm64-apple-macosx/debug/FloatingTodo.build/ContentView.swift.o",
+    "swiftmodule": "/Users/andreas/FloatingTodo/.build/arm64-apple-macosx/debug/FloatingTodo.build/ContentView~partial.swiftmodule",
+    "swift-dependencies": "/Users/andreas/FloatingTodo/.build/arm64-apple-macosx/debug/FloatingTodo.build/ContentView.swiftdeps",
+    "diagnostics": "/Users/andreas/FloatingTodo/.build/arm64-apple-macosx/debug/FloatingTodo.build/ContentView.dia"
+  },
+  "/Users/andreas/FloatingTodo/FloatingTodo/FloatingPanel.swift": {
+    "dependencies": "/Users/andreas/FloatingTodo/.build/arm64-apple-macosx/debug/FloatingTodo.build/FloatingPanel.d",
+    "object": "/Users/andreas/FloatingTodo/.build/arm64-apple-macosx/debug/FloatingTodo.build/FloatingPanel.swift.o",
+    "swiftmodule": "/Users/andreas/FloatingTodo/.build/arm64-apple-macosx/debug/FloatingTodo.build/FloatingPanel~partial.swiftmodule",
+    "swift-dependencies": "/Users/andreas/FloatingTodo/.build/arm64-apple-macosx/debug/FloatingTodo.build/FloatingPanel.swiftdeps",
+    "diagnostics": "/Users/andreas/FloatingTodo/.build/arm64-apple-macosx/debug/FloatingTodo.build/FloatingPanel.dia"
+  },
+  "/Users/andreas/FloatingTodo/FloatingTodo/FloatingTodoApp.swift": {
+    "dependencies": "/Users/andreas/FloatingTodo/.build/arm64-apple-macosx/debug/FloatingTodo.build/FloatingTodoApp.d",
+    "object": "/Users/andreas/FloatingTodo/.build/arm64-apple-macosx/debug/FloatingTodo.build/FloatingTodoApp.swift.o",
+    "swiftmodule": "/Users/andreas/FloatingTodo/.build/arm64-apple-macosx/debug/FloatingTodo.build/FloatingTodoApp~partial.swiftmodule",
+    "swift-dependencies": "/Users/andreas/FloatingTodo/.build/arm64-apple-macosx/debug/FloatingTodo.build/FloatingTodoApp.swiftdeps",
+    "diagnostics": "/Users/andreas/FloatingTodo/.build/arm64-apple-macosx/debug/FloatingTodo.build/FloatingTodoApp.dia"
+  },
+  "/Users/andreas/FloatingTodo/FloatingTodo/PanelContainerView.swift": {
+    "dependencies": "/Users/andreas/FloatingTodo/.build/arm64-apple-macosx/debug/FloatingTodo.build/PanelContainerView.d",
+    "object": "/Users/andreas/FloatingTodo/.build/arm64-apple-macosx/debug/FloatingTodo.build/PanelContainerView.swift.o",
+    "swiftmodule": "/Users/andreas/FloatingTodo/.build/arm64-apple-macosx/debug/FloatingTodo.build/PanelContainerView~partial.swiftmodule",
+    "swift-dependencies": "/Users/andreas/FloatingTodo/.build/arm64-apple-macosx/debug/FloatingTodo.build/PanelContainerView.swiftdeps",
+    "diagnostics": "/Users/andreas/FloatingTodo/.build/arm64-apple-macosx/debug/FloatingTodo.build/PanelContainerView.dia"
+  },
+  "/Users/andreas/FloatingTodo/FloatingTodo/TodoItem.swift": {
+    "dependencies": "/Users/andreas/FloatingTodo/.build/arm64-apple-macosx/debug/FloatingTodo.build/TodoItem.d",
+    "object": "/Users/andreas/FloatingTodo/.build/arm64-apple-macosx/debug/FloatingTodo.build/TodoItem.swift.o",
+    "swiftmodule": "/Users/andreas/FloatingTodo/.build/arm64-apple-macosx/debug/FloatingTodo.build/TodoItem~partial.swiftmodule",
+    "swift-dependencies": "/Users/andreas/FloatingTodo/.build/arm64-apple-macosx/debug/FloatingTodo.build/TodoItem.swiftdeps",
+    "diagnostics": "/Users/andreas/FloatingTodo/.build/arm64-apple-macosx/debug/FloatingTodo.build/TodoItem.dia"
+  },
+  "/Users/andreas/FloatingTodo/FloatingTodo/TodoStore.swift": {
+    "dependencies": "/Users/andreas/FloatingTodo/.build/arm64-apple-macosx/debug/FloatingTodo.build/TodoStore.d",
+    "object": "/Users/andreas/FloatingTodo/.build/arm64-apple-macosx/debug/FloatingTodo.build/TodoStore.swift.o",
+    "swiftmodule": "/Users/andreas/FloatingTodo/.build/arm64-apple-macosx/debug/FloatingTodo.build/TodoStore~partial.swiftmodule",
+    "swift-dependencies": "/Users/andreas/FloatingTodo/.build/arm64-apple-macosx/debug/FloatingTodo.build/TodoStore.swiftdeps",
+    "diagnostics": "/Users/andreas/FloatingTodo/.build/arm64-apple-macosx/debug/FloatingTodo.build/TodoStore.dia"
+  }
+}
