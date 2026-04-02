@@ -75,6 +75,15 @@ class TodoStore: ObservableObject {
         save()
     }
 
+    func updateText(_ item: TodoItem, text: String) {
+        guard let idx = todos.firstIndex(where: { $0.id == item.id }) else { return }
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !trimmed.isEmpty {
+            todos[idx].text = trimmed
+            save()
+        }
+    }
+
     // MARK: - Persistence
 
     private func load() {

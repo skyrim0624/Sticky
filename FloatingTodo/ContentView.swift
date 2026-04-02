@@ -306,6 +306,9 @@ struct TodoRowContent: View {
     @State private var isExpanded = false
     @State private var noteText = ""
     @FocusState private var noteFocused: Bool
+    @State private var isEditingTitle = false
+    @State private var titleText = ""
+    @FocusState private var titleFocused: Bool
 
     private var hasNote: Bool { !item.note.isEmpty }
 
@@ -353,24 +356,50 @@ struct TodoRowContent: View {
                     }
                     .frame(width: 20, height: 20)
 
-                    Text(item.text)
-                        .font(.system(size: 14, weight: .regular, design: .default))
-                        .foregroundStyle(item.completed ? Theme.textTertiary : Theme.text)
-                        .lineLimit(2)
-                        .overlay(alignment: .center) {
-                            Rectangle()
-                                .fill(Theme.textTertiary)
-                                .frame(height: 1.5)
-                                .scaleEffect(x: item.completed ? 1 : 0, anchor: .leading)
-                                .animation(.spring(response: 0.35, dampingFraction: 0.7), value: item.completed)
-                        }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .animation(.easeOut(duration: 0.2), value: item.completed)
+                    if isEditingTitle && !item.completed {
+                        TextField("任务名称", text: $titleText)
+                            .textFieldStyle(.plain)
+                            .font(.system(size: 14, weight: .regular, design: .default))
+                            .foregroundStyle(Theme.text)
+                            .focused($titleFocused)
+                            .onSubmit {
+                                isEditingTitle = false
+                            }
+                            .onChange(of: titleFocused) {
+                                if !titleFocused {
+                                    isEditingTitle = false
+                                    store.updateText(item, text: titleText)
+                                }
+                            }
+                    } else {
+                        Text(item.text)
+                            .font(.system(size: 14, weight: .regular, design: .default))
+                            .foregroundStyle(item.completed ? Theme.textTertiary : Theme.text)
+                            .lineLimit(2)
+                            .overlay(alignment: .center) {
+                                Rectangle()
+                                    .fill(Theme.textTertiary)
+                                    .frame(height: 1.5)
+                                    .scaleEffect(x: item.completed ? 1 : 0, anchor: .leading)
+                                    .animation(.spring(response: 0.35, dampingFraction: 0.7), value: item.completed)
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .animation(.easeOut(duration: 0.2), value: item.completed)
+                    }
                 }
                 .contentShape(Rectangle())
-                .onTapGesture {
-                    withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
-                        store.toggle(item)
+                .onTapGesture(count: 2) {
+                    if !item.completed {
+                        titleText = item.text
+                        isEditingTitle = true
+                        titleFocused = true
+                    }
+                }
+                .onTapGesture(count: 1) {
+                    if !isEditingTitle {
+                        withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
+                            store.toggle(item)
+                        }
                     }
                 }
 
