@@ -15,7 +15,7 @@ class FloatingPanel: NSPanel {
         )
 
         isFloatingPanel = true
-        level = .statusBar + 1
+        level = .screenSaver - 1  // 比 statusBar+1 更高，在全屏 app 之上也能接收事件
         isOpaque = false
         backgroundColor = .clear
         hasShadow = true
@@ -30,7 +30,7 @@ class FloatingPanel: NSPanel {
             .canJoinAllSpaces,
             .fullScreenAuxiliary,
             .stationary,
-            .ignoresCycle
+            .ignoresCycle,
         ]
 
         animationBehavior = .none

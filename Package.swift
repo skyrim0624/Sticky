@@ -9,6 +9,9 @@ let package = Package(
             name: "FloatingTodo",
             path: "FloatingTodo",
             exclude: ["Assets.xcassets"],
+            resources: [
+                .copy("Resources")
+            ],
             linkerSettings: [
                 .unsafeFlags([
                     "-Xlinker", "-sectcreate",

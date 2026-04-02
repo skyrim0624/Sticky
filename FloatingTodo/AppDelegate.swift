@@ -19,6 +19,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         setupStatusItem()
         setupPanel()
+        
+        // 自动弹出版面，避免图标被状态栏挡住而找不到
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            self.showPanel()
+        }
     }
 
     // MARK: - Status Bar
@@ -26,7 +31,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private func setupStatusItem() {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         if let button = statusItem.button {
-            button.title = "📌"
+            if let iconURL = Bundle.module.url(forResource: "StatusBarIcon", withExtension: "png", subdirectory: "Resources"),
+               let icon = NSImage(contentsOf: iconURL) {
+                icon.isTemplate = false  // 彩色图标，不用模板模式
+                icon.size = NSSize(width: 18, height: 18)
+                button.image = icon
+            } else {
+                button.title = "📌"  // fallback
+            }
             button.action = #selector(statusBarClicked)
             button.target = self
             // Left click to toggle, right click for menu
@@ -35,10 +47,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     @objc private func statusBarClicked(_ sender: NSStatusBarButton) {
-        guard let event = NSApp.currentEvent else { return }
-
-        if event.type == .rightMouseUp {
-            // Right click → show menu
+        let event = NSApp.currentEvent
+        // Right click -> show menu
+        if event?.type == .rightMouseUp {
             let menu = NSMenu()
             menu.addItem(NSMenuItem(title: "退出 FloatingTodo", action: #selector(quitApp), keyEquivalent: "q"))
             statusItem.menu = menu
@@ -46,7 +57,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             // Clear menu so left click works again
             DispatchQueue.main.async { self.statusItem.menu = nil }
         } else {
-            // Left click → toggle panel
+            // Left click -> toggle panel
             if isShowing {
                 hidePanel()
             } else {
@@ -85,18 +96,20 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private func showPanel() {
         guard !isShowing, !isAnimating else { return }
 
-        guard let screen = NSScreen.main else { return }
-        let menuBarHeight = NSStatusBar.system.thickness
+        let buttonWin = statusItem.button?.window
+        guard let screen = buttonWin?.screen ?? NSScreen.main else { return }
 
         // Position below the status bar icon if possible, otherwise center
         var x = screen.frame.midX - panelWidth / 2
-        if let button = statusItem.button, let buttonWindow = button.window {
-            let buttonFrame = buttonWindow.frame
-            x = buttonFrame.midX - panelWidth / 2
-            // Clamp to screen bounds
-            x = max(screen.frame.minX + 8, min(x, screen.frame.maxX - panelWidth - 8))
+        if let buttonWin = buttonWin {
+            x = buttonWin.frame.midX - panelWidth / 2
         }
-        let yFinal = screen.frame.maxY - menuBarHeight - panelMaxHeight - 4
+        
+        // Clamp firmly to visible screen frame (avoids edges & Dock)
+        x = max(screen.visibleFrame.minX + 8, min(x, screen.visibleFrame.maxX - panelWidth - 8))
+        
+        // strictly position right below the menu bar
+        let yFinal = screen.visibleFrame.maxY - panelMaxHeight - 4
 
         // Start at final position, just transparent
         panel.setFrame(NSRect(x: x, y: yFinal, width: panelWidth, height: panelMaxHeight), display: false)
@@ -160,14 +173,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let frame = panel.frame
 
         // Also include the status bar button area as "inside"
-        var safeZone = frame.insetBy(dx: -10, dy: -10)
-        // Extend upward to cover the gap to menu bar
-        safeZone = NSRect(
-            x: safeZone.origin.x,
-            y: safeZone.origin.y,
-            width: safeZone.width,
-            height: safeZone.height + 30  // cover menu bar gap
-        )
+        var safeZone = frame.insetBy(dx: -20, dy: -20)
+        // Extend upward practically to infinity to cover the entire menu bar space safely
+        safeZone.size.height += 300
 
         if safeZone.contains(mouse) {
             outsideCount = 0

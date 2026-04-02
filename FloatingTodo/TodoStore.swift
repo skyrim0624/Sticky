@@ -5,7 +5,7 @@ class TodoStore: ObservableObject {
     @Published var todos: [TodoItem] = []
 
     private let jsonURL: URL
-    private let mdPath = "/Users/andreas/cmi社区知识库/CMI/Floating Todo.md"
+    private let mdPath = "/Users/andreas/cmi社区知识库/CMI/Obsidian sticker.md"
 
     init() {
         let dir = FileManager.default.homeDirectoryForCurrentUser
@@ -32,6 +32,46 @@ class TodoStore: ObservableObject {
 
     func delete(_ item: TodoItem) {
         todos.removeAll { $0.id == item.id }
+        save()
+    }
+
+    func move(item: TodoItem, to target: TodoItem) {
+        guard let from = todos.firstIndex(where: { $0.id == item.id }),
+              let to = todos.firstIndex(where: { $0.id == target.id }),
+              from != to else { return }
+        guard todos[from].completed == todos[to].completed else { return }
+        todos.move(fromOffsets: IndexSet(integer: from), toOffset: to > from ? to + 1 : to)
+        save()
+    }
+
+    /// 在 pending 子列表中上移一位
+    func moveUp(_ item: TodoItem) {
+        let pendingIds = todos.filter { !$0.completed }.map { $0.id }
+        guard let pendingIdx = pendingIds.firstIndex(of: item.id),
+              pendingIdx > 0 else { return }
+        // 在 todos 全局数组中找到当前项和上一项的实际位置并交换
+        let targetId = pendingIds[pendingIdx - 1]
+        guard let fromGlobal = todos.firstIndex(where: { $0.id == item.id }),
+              let toGlobal = todos.firstIndex(where: { $0.id == targetId }) else { return }
+        todos.swapAt(fromGlobal, toGlobal)
+        save()
+    }
+
+    /// 在 pending 子列表中下移一位
+    func moveDown(_ item: TodoItem) {
+        let pendingIds = todos.filter { !$0.completed }.map { $0.id }
+        guard let pendingIdx = pendingIds.firstIndex(of: item.id),
+              pendingIdx < pendingIds.count - 1 else { return }
+        let targetId = pendingIds[pendingIdx + 1]
+        guard let fromGlobal = todos.firstIndex(where: { $0.id == item.id }),
+              let toGlobal = todos.firstIndex(where: { $0.id == targetId }) else { return }
+        todos.swapAt(fromGlobal, toGlobal)
+        save()
+    }
+
+    func updateNote(_ item: TodoItem, note: String) {
+        guard let idx = todos.firstIndex(where: { $0.id == item.id }) else { return }
+        todos[idx].note = note
         save()
     }
 
@@ -73,9 +113,20 @@ class TodoStore: ObservableObject {
 
         for item in pending {
             lines.append("- [ ] \(item.text)")
+            if !item.note.isEmpty {
+                // 将注释以缩进块引用写入，Obsidian 渲染友好
+                for noteLine in item.note.components(separatedBy: "\n") {
+                    lines.append("    > \(noteLine)")
+                }
+            }
         }
         for item in done {
             lines.append("- [x] \(item.text)")
+            if !item.note.isEmpty {
+                for noteLine in item.note.components(separatedBy: "\n") {
+                    lines.append("    > \(noteLine)")
+                }
+            }
         }
         lines.append("")
 
