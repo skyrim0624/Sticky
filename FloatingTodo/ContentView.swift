@@ -64,12 +64,12 @@ struct ContentView: View {
         .background(
             ZStack {
                 RoundedRectangle(cornerRadius: Theme.cornerRadius, style: .continuous)
-                    .fill(Color.white.opacity(0.96))
+                    .fill(Color(white: 1.0, opacity: 0.75))
                     .background(.ultraThinMaterial)
 
                 LinearGradient(
-                    colors: [Color.white.opacity(0.6), Color.white.opacity(0.0)],
-                    startPoint: .top, endPoint: .bottom
+                    colors: [Color.white.opacity(0.8), Color.white.opacity(0.1)],
+                    startPoint: .topLeading, endPoint: .bottomTrailing
                 )
             }
         )
@@ -88,8 +88,8 @@ struct ContentView: View {
     private var headerView: some View {
         HStack(alignment: .center, spacing: 12) {
             VStack(alignment: .leading, spacing: 3) {
-                TextField("标题", text: $listTitle)
-                    .font(.system(size: 22, weight: .semibold, design: .default))
+                TextField("这里可以写标题...", text: $listTitle)
+                    .font(.system(size: 22, weight: .bold, design: .rounded))
                     .foregroundStyle(Theme.text)
                     .textFieldStyle(.plain)
 
@@ -154,10 +154,10 @@ struct ContentView: View {
 
     private var emptyState: some View {
         VStack(spacing: 8) {
-            Text("☀️")
-                .font(.system(size: 28))
-            Text("没有待办，享受当下")
-                .font(.system(size: 12, weight: .medium, design: .rounded))
+            Text("✨")
+                .font(.system(size: 32))
+            Text("享受当下的空闲时刻")
+                .font(.system(size: 13, weight: .medium, design: .rounded))
                 .foregroundStyle(Theme.textTertiary)
         }
         .frame(maxWidth: .infinity, minHeight: 100)
@@ -270,7 +270,7 @@ struct ContentView: View {
 
             TextField("添加新待办…", text: $newTodoText)
                 .textFieldStyle(.plain)
-                .font(.system(size: 14, weight: .regular, design: .default))
+                .font(.system(size: 14, weight: .medium, design: .rounded))
                 .foregroundStyle(Theme.text)
                 .focused($inputFocused)
                 .onSubmit {
@@ -359,7 +359,7 @@ struct TodoRowContent: View {
                     if isEditingTitle && !item.completed {
                         TextField("任务名称", text: $titleText)
                             .textFieldStyle(.plain)
-                            .font(.system(size: 14, weight: .regular, design: .default))
+                            .font(.system(size: 14, weight: .medium, design: .rounded))
                             .foregroundStyle(Theme.text)
                             .focused($titleFocused)
                             .onSubmit {
@@ -373,18 +373,20 @@ struct TodoRowContent: View {
                             }
                     } else {
                         Text(item.text)
-                            .font(.system(size: 14, weight: .regular, design: .default))
+                            .font(.system(size: 14, weight: .medium, design: .rounded))
                             .foregroundStyle(item.completed ? Theme.textTertiary : Theme.text)
+                            .blur(radius: item.completed ? 0.8 : 0)
+                            .scaleEffect(item.completed ? 0.98 : 1.0, anchor: .leading)
                             .lineLimit(2)
                             .overlay(alignment: .center) {
                                 Rectangle()
                                     .fill(Theme.textTertiary)
                                     .frame(height: 1.5)
                                     .scaleEffect(x: item.completed ? 1 : 0, anchor: .leading)
-                                    .animation(.spring(response: 0.35, dampingFraction: 0.7), value: item.completed)
+                                    .animation(.spring(response: 0.4, dampingFraction: 0.7), value: item.completed)
                             }
                             .frame(maxWidth: .infinity, alignment: .leading)
-                            .animation(.easeOut(duration: 0.2), value: item.completed)
+                            .animation(.spring(response: 0.4, dampingFraction: 0.7), value: item.completed)
                     }
                 }
                 .contentShape(Rectangle())
