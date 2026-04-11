@@ -168,7 +168,7 @@ struct ContentView: View {
 
     private var todoList: some View {
         ScrollView(.vertical, showsIndicators: false) {
-            LazyVStack(spacing: 6) {
+            VStack(spacing: 6) {
                 ForEach(Array(pending.enumerated()), id: \.element.id) { index, item in
                     pendingRow(item: item, index: index)
                 }
@@ -212,7 +212,7 @@ struct ContentView: View {
             showGrip: true
         )
         .simultaneousGesture(
-            DragGesture(minimumDistance: 5)
+            DragGesture(minimumDistance: 5, coordinateSpace: .global)
                 .onChanged { value in
                     if draggingId == nil {
                         draggingId = item.id
