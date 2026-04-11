@@ -218,19 +218,28 @@ struct ContentView: View {
                         draggingId = item.id
                         dragAccumulated = 0
                     }
-                    let effective = value.translation.height - dragAccumulated
+                    var effective = value.translation.height - dragAccumulated
                     let rowH: CGFloat = 44
 
-                    if effective > rowH * 0.55 && canDown {
-                        withAnimation(.spring(response: 0.25, dampingFraction: 0.75)) {
-                            store.moveDown(item)
+                    while true {
+                        let currentPending = store.todos.filter { !$0.completed }
+                        guard let curIndex = currentPending.firstIndex(where: { $0.id == item.id }) else { break }
+
+                        if effective > rowH * 0.55 && curIndex < currentPending.count - 1 {
+                            withAnimation(.spring(response: 0.25, dampingFraction: 0.75)) {
+                                store.moveDown(item)
+                            }
+                            dragAccumulated += rowH
+                            effective -= rowH
+                        } else if effective < -rowH * 0.55 && curIndex > 0 {
+                            withAnimation(.spring(response: 0.25, dampingFraction: 0.75)) {
+                                store.moveUp(item)
+                            }
+                            dragAccumulated -= rowH
+                            effective += rowH
+                        } else {
+                            break
                         }
-                        dragAccumulated += rowH
-                    } else if effective < -rowH * 0.55 && canUp {
-                        withAnimation(.spring(response: 0.25, dampingFraction: 0.75)) {
-                            store.moveUp(item)
-                        }
-                        dragAccumulated -= rowH
                     }
                 }
                 .onEnded { _ in

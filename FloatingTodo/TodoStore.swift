@@ -98,7 +98,23 @@ class TodoStore: ObservableObject {
         }
     }
 
+    private var saveWorkItem: DispatchWorkItem?
+
     func save() {
+        saveWorkItem?.cancel()
+        let workItem = DispatchWorkItem { [weak self] in
+            self?.performSave()
+        }
+        saveWorkItem = workItem
+        DispatchQueue.global(qos: .background).asyncAfter(deadline: .now() + 0.3, execute: workItem)
+    }
+
+    func saveImmediately() {
+        saveWorkItem?.cancel()
+        performSave()
+    }
+
+    private func performSave() {
         // Save JSON
         do {
             let encoder = JSONEncoder()
