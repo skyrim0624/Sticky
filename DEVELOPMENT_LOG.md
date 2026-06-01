@@ -17,3 +17,8 @@
 - [进展]: Web 版完成反馈改为从实际点击坐标爆开，位置跟随鼠标与任务行，不再固定在面板顶部。
 - [进展]: 彩纸特效增强为高亮闪光、冲击环、星芒和大数量材质碎片，完成动作更夸张。
 - [收藏]: 完成音效使用 OpenGameArt `Basic Sound Effects` 中的 `success.mp3`，作者 n4，许可 CC0。
+
+## 2026-06-01 经典彩纸与三连音反馈
+
+- [决策]: 撤掉手写材质碎片效果，改用 `canvas-confetti` 做更经典的 canvas 彩纸爆发；第一段从点击位置喷开，第二段补落纸。
+- [进展]: 完成音效换成 OpenGameArt `Pleasing Bell Sound Effect` 的 `pleasing-bell.wav`，作者 Spring Spring，许可 CC0；点击完成后连续播放三次形成“噔噔噔”。

@@ -27,11 +27,12 @@ http://127.0.0.1:5173/
 
 ## 音效来源
 
-- `public/sounds/task-complete-success.mp3`
-- 来源：[OpenGameArt - Basic Sound Effects](https://opengameart.org/content/basic-sound-effects)
-- 作者：n4
-- 文件：`success.mp3`
+- `public/sounds/task-complete-bell.wav`
+- 来源：[OpenGameArt - Pleasing Bell Sound Effect](https://opengameart.org/content/pleasing-bell-sound-effect)
+- 作者：Spring Spring
+- 文件：`pleasing-bell.wav`
 - 许可：CC0
+- 使用方式：点击完成后连续播放三次，形成短促的“噔噔噔”反馈。
 
 ## 暂不放进 Web 版
 

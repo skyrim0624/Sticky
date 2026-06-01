@@ -1,7 +1,7 @@
 import { Check, Clipboard, Download, Plus, RotateCcw } from "lucide-react";
+import confetti from "canvas-confetti";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, MouseEvent } from "react";
-import { Confetti } from "./components/Confetti";
 import { TodoRow } from "./components/TodoRow";
 import { useReducedMotion } from "./hooks/use-reduced-motion";
 import type { DragState, TodoItem } from "./types";
@@ -15,16 +15,16 @@ import {
   toMarkdown
 } from "./utils/todo-storage";
 
+const COMPLETION_SOUND_URL = "/sounds/task-complete-bell.wav";
+const COMPLETION_SOUND_DELAYS = [0, 140, 280];
+const CLASSIC_CONFETTI_COLORS = ["#ff3b30", "#ffcc00", "#34c759", "#0a84ff", "#af52de", "#ff9500"];
+
 export function App() {
-  const panelRef = useRef<HTMLElement | null>(null);
   const completionAudioRef = useRef<HTMLAudioElement | null>(null);
   const [todos, setTodos] = useState<TodoItem[]>(() => loadTodos());
   const [listTitle, setListTitle] = useState(() => loadTitle());
   const [newTodoText, setNewTodoText] = useState("");
   const [dragState, setDragState] = useState<DragState>(null);
-  const [confettiBurst, setConfettiBurst] = useState(0);
-  const [showsConfetti, setShowsConfetti] = useState(false);
-  const [confettiOrigin, setConfettiOrigin] = useState({ x: 180, y: 120 });
   const reducedMotion = useReducedMotion();
 
   const pending = useMemo(() => todos.filter((todo) => !todo.completed), [todos]);
@@ -62,30 +62,50 @@ export function App() {
   }
 
   function triggerConfetti(event: MouseEvent<HTMLElement>) {
-    setConfettiOrigin(getPanelPoint(event));
-    setConfettiBurst((current) => current + 1);
-    setShowsConfetti(true);
-    window.setTimeout(() => setShowsConfetti(false), 1650);
-  }
-
-  function getPanelPoint(event: MouseEvent<HTMLElement>) {
-    const rect = panelRef.current?.getBoundingClientRect();
-    if (!rect) return confettiOrigin;
-
-    return {
-      x: Math.max(18, Math.min(event.clientX - rect.left, rect.width - 18)),
-      y: Math.max(18, Math.min(event.clientY - rect.top, rect.height - 18))
+    const origin = {
+      x: clamp(event.clientX / window.innerWidth, 0.04, 0.96),
+      y: clamp(event.clientY / window.innerHeight, 0.04, 0.82)
     };
+
+    void confetti({
+      particleCount: 90,
+      spread: 72,
+      startVelocity: 42,
+      decay: 0.9,
+      scalar: 0.9,
+      ticks: 170,
+      origin,
+      colors: CLASSIC_CONFETTI_COLORS,
+      shapes: ["square", "circle"],
+      disableForReducedMotion: true
+    });
+
+    window.setTimeout(() => {
+      void confetti({
+        particleCount: 46,
+        spread: 118,
+        startVelocity: 24,
+        gravity: 0.82,
+        scalar: 0.72,
+        ticks: 210,
+        origin: { x: origin.x, y: Math.max(origin.y - 0.02, 0.04) },
+        colors: CLASSIC_CONFETTI_COLORS,
+        shapes: ["square", "circle"],
+        disableForReducedMotion: true
+      });
+    }, 90);
   }
 
   function playCompletionSound() {
-    const audio = completionAudioRef.current;
-    if (!audio) return;
-
-    audio.volume = 0.58;
-    audio.currentTime = 0;
-    void audio.play().catch(() => {
-      // 浏览器可能在非用户手势或静音策略下拒绝播放，原型里静默降级。
+    COMPLETION_SOUND_DELAYS.forEach((delay, index) => {
+      window.setTimeout(() => {
+        const audio = index === 0 && completionAudioRef.current ? completionAudioRef.current : new Audio(COMPLETION_SOUND_URL);
+        audio.volume = 0.48;
+        audio.currentTime = 0;
+        void audio.play().catch(() => {
+          // 浏览器可能在非用户手势或静音策略下拒绝播放，原型里静默降级。
+        });
+      }, delay);
     });
   }
 
@@ -143,9 +163,8 @@ export function App() {
 
   return (
     <main className="app-shell">
-      <section className="todo-panel" aria-label="Floating Todo Web" ref={panelRef}>
-        <audio ref={completionAudioRef} src="/sounds/task-complete-success.mp3" preload="auto" />
-        {showsConfetti && <Confetti burstKey={confettiBurst} origin={confettiOrigin} />}
+      <section className="todo-panel" aria-label="Floating Todo Web">
+        <audio ref={completionAudioRef} src={COMPLETION_SOUND_URL} preload="auto" />
 
         <header className="panel-header">
           <div className="title-stack">
@@ -254,4 +273,8 @@ export function App() {
       </section>
     </main>
   );
+}
+
+function clamp(value: number, min: number, max: number) {
+  return Math.min(Math.max(value, min), max);
 }
