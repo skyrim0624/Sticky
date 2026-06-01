@@ -1,6 +1,6 @@
 import { ChevronRight, GripHorizontal, X } from "lucide-react";
 import { useEffect, useState } from "react";
-import type { CSSProperties } from "react";
+import type { CSSProperties, MouseEvent } from "react";
 import type { DragState, TodoItem } from "../types";
 
 type TodoRowProps = {
@@ -10,7 +10,7 @@ type TodoRowProps = {
   dragState: DragState;
   onDragStateChange: (state: DragState) => void;
   onMovePending: (fromId: string, toId: string) => void;
-  onToggle: (item: TodoItem) => void;
+  onToggle: (item: TodoItem, event: MouseEvent<HTMLElement>) => void;
   onDelete: (id: string) => void;
   onUpdateText: (id: string, text: string) => void;
   onUpdateNote: (id: string, note: string) => void;
@@ -88,7 +88,7 @@ export function TodoRow({
           className="check-button"
           type="button"
           aria-label={item.completed ? "标记为未完成" : "标记为已完成"}
-          onClick={() => onToggle(item)}
+          onClick={(event) => onToggle(item, event)}
           style={{ "--priority-color": priorityColor } as CSSProperties}
         >
           <span className="check-dot" />
@@ -118,7 +118,7 @@ export function TodoRow({
           <button
             className="todo-title"
             type="button"
-            onClick={() => onToggle(item)}
+            onClick={(event) => onToggle(item, event)}
             onDoubleClick={() => {
               if (!item.completed) setEditingTitle(true);
             }}

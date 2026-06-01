@@ -1,6 +1,6 @@
 import { Check, Clipboard, Download, Plus, RotateCcw } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
-import type { CSSProperties } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import type { CSSProperties, MouseEvent } from "react";
 import { Confetti } from "./components/Confetti";
 import { TodoRow } from "./components/TodoRow";
 import { useReducedMotion } from "./hooks/use-reduced-motion";
@@ -16,12 +16,15 @@ import {
 } from "./utils/todo-storage";
 
 export function App() {
+  const panelRef = useRef<HTMLElement | null>(null);
+  const completionAudioRef = useRef<HTMLAudioElement | null>(null);
   const [todos, setTodos] = useState<TodoItem[]>(() => loadTodos());
   const [listTitle, setListTitle] = useState(() => loadTitle());
   const [newTodoText, setNewTodoText] = useState("");
   const [dragState, setDragState] = useState<DragState>(null);
   const [confettiBurst, setConfettiBurst] = useState(0);
   const [showsConfetti, setShowsConfetti] = useState(false);
+  const [confettiOrigin, setConfettiOrigin] = useState({ x: 180, y: 120 });
   const reducedMotion = useReducedMotion();
 
   const pending = useMemo(() => todos.filter((todo) => !todo.completed), [todos]);
@@ -44,20 +47,46 @@ export function App() {
     setNewTodoText("");
   }
 
-  function toggleTodo(item: TodoItem) {
+  function toggleTodo(item: TodoItem, event: MouseEvent<HTMLElement>) {
     setTodos((current) =>
       current.map((todo) => (todo.id === item.id ? { ...todo, completed: !todo.completed } : todo))
     );
 
-    if (!item.completed && !reducedMotion) {
-      triggerConfetti();
+    if (!item.completed) {
+      playCompletionSound();
+
+      if (!reducedMotion) {
+        triggerConfetti(event);
+      }
     }
   }
 
-  function triggerConfetti() {
+  function triggerConfetti(event: MouseEvent<HTMLElement>) {
+    setConfettiOrigin(getPanelPoint(event));
     setConfettiBurst((current) => current + 1);
     setShowsConfetti(true);
-    window.setTimeout(() => setShowsConfetti(false), 1450);
+    window.setTimeout(() => setShowsConfetti(false), 1650);
+  }
+
+  function getPanelPoint(event: MouseEvent<HTMLElement>) {
+    const rect = panelRef.current?.getBoundingClientRect();
+    if (!rect) return confettiOrigin;
+
+    return {
+      x: Math.max(18, Math.min(event.clientX - rect.left, rect.width - 18)),
+      y: Math.max(18, Math.min(event.clientY - rect.top, rect.height - 18))
+    };
+  }
+
+  function playCompletionSound() {
+    const audio = completionAudioRef.current;
+    if (!audio) return;
+
+    audio.volume = 0.58;
+    audio.currentTime = 0;
+    void audio.play().catch(() => {
+      // 浏览器可能在非用户手势或静音策略下拒绝播放，原型里静默降级。
+    });
   }
 
   function deleteTodo(id: string) {
@@ -114,8 +143,9 @@ export function App() {
 
   return (
     <main className="app-shell">
-      <section className="todo-panel" aria-label="Floating Todo Web">
-        {showsConfetti && <Confetti burstKey={confettiBurst} />}
+      <section className="todo-panel" aria-label="Floating Todo Web" ref={panelRef}>
+        <audio ref={completionAudioRef} src="/sounds/task-complete-success.mp3" preload="auto" />
+        {showsConfetti && <Confetti burstKey={confettiBurst} origin={confettiOrigin} />}
 
         <header className="panel-header">
           <div className="title-stack">

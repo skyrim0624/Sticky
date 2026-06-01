@@ -19,10 +19,19 @@ http://127.0.0.1:5173/
 
 - [x] 添加、删除、完成、取消完成
 - [x] 完成任务后的彩纸动效
+- [x] 完成任务后的本地成功音效
 - [x] 备注展开与编辑
 - [x] 未完成任务拖拽排序
 - [x] 浏览器本地保存
 - [x] 复制 / 下载 Markdown
+
+## 音效来源
+
+- `public/sounds/task-complete-success.mp3`
+- 来源：[OpenGameArt - Basic Sound Effects](https://opengameart.org/content/basic-sound-effects)
+- 作者：n4
+- 文件：`success.mp3`
+- 许可：CC0
 
 ## 暂不放进 Web 版
 

@@ -1,7 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
 import type { CSSProperties } from "react";
 
-const colors = ["#f63d57", "#ffb21f", "#31c46d", "#1c8df0", "#8d4ce8", "#ff63b2"];
+const colors = [
+  "#ff2f6d",
+  "#ffb21f",
+  "#43e16d",
+  "#1c8df0",
+  "#8d4ce8",
+  "#ff63b2",
+  "#f6ff2e",
+  "#30e7ff"
+];
 
 type Piece = {
   id: number;
@@ -15,14 +24,19 @@ type Piece = {
   rotation: number;
   delay: number;
   duration: number;
-  shape: "rect" | "circle" | "pill";
+  scale: number;
+  shape: "shard" | "spark" | "ribbon" | "drop";
 };
 
 type ConfettiProps = {
   burstKey: number;
+  origin: {
+    x: number;
+    y: number;
+  };
 };
 
-export function Confetti({ burstKey }: ConfettiProps) {
+export function Confetti({ burstKey, origin }: ConfettiProps) {
   const [active, setActive] = useState(false);
   const pieces = useMemo(() => buildPieces(burstKey), [burstKey]);
 
@@ -32,7 +46,20 @@ export function Confetti({ burstKey }: ConfettiProps) {
   }, [burstKey]);
 
   return (
-    <div className="confetti-layer" aria-hidden="true">
+    <div
+      className="confetti-layer"
+      aria-hidden="true"
+      style={
+        {
+          "--origin-x": `${origin.x}px`,
+          "--origin-y": `${origin.y}px`
+        } as CSSProperties
+      }
+    >
+      <span className="burst-flash" data-active={active} />
+      <span className="burst-halo burst-halo-primary" data-active={active} />
+      <span className="burst-halo burst-halo-secondary" data-active={active} />
+      <span className="burst-star" data-active={active} />
       {pieces.map((piece) => (
         <span
           className={`confetti-piece confetti-${piece.shape}`}
@@ -48,38 +75,47 @@ export function Confetti({ burstKey }: ConfettiProps) {
               "--end-y": `${piece.endY}px`,
               "--rotation": `${piece.rotation}deg`,
               "--delay": `${piece.delay}s`,
-              "--duration": `${piece.duration}s`
+              "--duration": `${piece.duration}s`,
+              "--scale": piece.scale
             } as CSSProperties
           }
           data-active={active}
         />
       ))}
-      <span className="confetti-ring" data-active={active} />
     </div>
   );
 }
 
 function buildPieces(seed: number): Piece[] {
-  return Array.from({ length: 38 }, (_, index) => {
-    const spread = random(index, seed, 7);
-    const fall = random(index, seed, 19);
-    const drift = random(index, seed, 31);
+  return Array.from({ length: 96 }, (_, index) => {
+    const angle = random(index, seed, 7) * Math.PI * 2;
+    const distance = 58 + random(index, seed, 19) * 260;
+    const lift = random(index, seed, 31) * 90;
     const spin = random(index, seed, 43);
-    const shapeIndex = (index + seed) % 3;
+    const shapeIndex = (index + seed) % 4;
+    const isSpark = shapeIndex === 1;
 
     return {
       id: index,
       color: colors[(index + seed) % colors.length],
-      width: 5 + ((index + seed) % 7),
-      height: index % 3 === 0 ? 5 : 9 + ((index + seed) % 6),
-      startX: (spread - 0.5) * 38,
-      startY: (drift - 0.5) * 16,
-      endX: (spread - 0.5) * 310,
-      endY: 78 + fall * 172,
-      rotation: 180 + spin * 680,
-      delay: (index % 9) * 0.018,
-      duration: 0.78 + (index % 6) * 0.065,
-      shape: shapeIndex === 0 ? "rect" : shapeIndex === 1 ? "circle" : "pill"
+      width: isSpark ? 4 + ((index + seed) % 4) : 7 + ((index + seed) % 11),
+      height: isSpark ? 4 + ((index + seed) % 4) : 12 + ((index + seed) % 20),
+      startX: (random(index, seed, 59) - 0.5) * 14,
+      startY: (random(index, seed, 71) - 0.5) * 14,
+      endX: Math.cos(angle) * distance,
+      endY: Math.sin(angle) * distance + 56 - lift,
+      rotation: 240 + spin * 980,
+      delay: (index % 16) * 0.008,
+      duration: 0.72 + (index % 9) * 0.06,
+      scale: 0.72 + random(index, seed, 83) * 0.95,
+      shape:
+        shapeIndex === 0
+          ? "shard"
+          : shapeIndex === 1
+            ? "spark"
+            : shapeIndex === 2
+              ? "ribbon"
+              : "drop"
     };
   });
 }
