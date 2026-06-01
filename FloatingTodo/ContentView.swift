@@ -22,6 +22,14 @@ private enum Theme {
     static let noteText = Color.primary.opacity(0.55)
     static let noteBg = Color.primary.opacity(0.025)
     static let noteBorder = Color.primary.opacity(0.06)
+    static let confettiColors: [Color] = [
+        Color(red: 0.98, green: 0.24, blue: 0.31),
+        Color(red: 1.00, green: 0.70, blue: 0.16),
+        Color(red: 0.20, green: 0.78, blue: 0.42),
+        Color(red: 0.10, green: 0.55, blue: 0.96),
+        Color(red: 0.62, green: 0.28, blue: 0.95),
+        Color(red: 0.98, green: 0.38, blue: 0.74)
+    ]
 
     /// 优先级颜色：红→橙→黄→绿→蓝
     static func priorityColor(index: Int, total: Int) -> Color {
@@ -38,12 +46,15 @@ private enum Theme {
 
 struct ContentView: View {
     @ObservedObject var store: TodoStore
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var newTodoText = ""
     @FocusState private var inputFocused: Bool
     @AppStorage("listTitle") private var listTitle = "待办事项"
     // 拖拽状态（放在父级，跨 child rebuild 保持稳定）
     @State private var draggingId: UUID? = nil
     @State private var dragAccumulated: CGFloat = 0
+    @State private var confettiBurst = 0
+    @State private var showsCompletionConfetti = false
 
     private var pending: [TodoItem] { store.todos.filter { !$0.completed } }
     private var completed: [TodoItem] { store.todos.filter { $0.completed } }
@@ -81,6 +92,15 @@ struct ContentView: View {
             RoundedRectangle(cornerRadius: Theme.cornerRadius, style: .continuous)
                 .strokeBorder(Color.white.opacity(0.5), lineWidth: 0.5)
         )
+        .overlay(alignment: .top) {
+            if showsCompletionConfetti && !reduceMotion {
+                CompletionConfettiView(seed: confettiBurst)
+                    .frame(width: 320, height: 260)
+                    .allowsHitTesting(false)
+                    .transition(.opacity)
+                    .id(confettiBurst)
+            }
+        }
     }
 
     // MARK: - Header
@@ -201,15 +221,13 @@ struct ContentView: View {
 
     /// 待办行：带拖拽手柄和优先级颜色
     private func pendingRow(item: TodoItem, index: Int) -> some View {
-        let canUp = index > 0
-        let canDown = index < pending.count - 1
-
-        return TodoRowContent(
+        TodoRowContent(
             item: item,
             store: store,
             priorityColor: Theme.priorityColor(index: index, total: pending.count),
             isDragging: draggingId == item.id,
-            showGrip: true
+            showGrip: true,
+            onComplete: celebrateCompletion
         )
         .simultaneousGesture(
             DragGesture(minimumDistance: 5, coordinateSpace: .global)
@@ -258,8 +276,27 @@ struct ContentView: View {
             store: store,
             priorityColor: nil,
             isDragging: false,
-            showGrip: false
+            showGrip: false,
+            onComplete: nil
         )
+    }
+
+    private func celebrateCompletion() {
+        guard !reduceMotion else { return }
+
+        confettiBurst += 1
+
+        withAnimation(.easeOut(duration: 0.12)) {
+            showsCompletionConfetti = true
+        }
+
+        let currentBurst = confettiBurst
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.45) {
+            guard currentBurst == confettiBurst else { return }
+            withAnimation(.easeOut(duration: 0.18)) {
+                showsCompletionConfetti = false
+            }
+        }
     }
 
     // MARK: - Input Bar
@@ -311,6 +348,7 @@ struct TodoRowContent: View {
     let priorityColor: Color?
     let isDragging: Bool
     let showGrip: Bool
+    let onComplete: (() -> Void)?
     @State private var isHovering = false
     @State private var isExpanded = false
     @State private var noteText = ""
@@ -408,9 +446,7 @@ struct TodoRowContent: View {
                 }
                 .onTapGesture(count: 1) {
                     if !isEditingTitle {
-                        withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
-                            store.toggle(item)
-                        }
+                        toggleCompletion()
                     }
                 }
 
@@ -518,5 +554,129 @@ struct TodoRowContent: View {
             }
         }
         .padding(.bottom, 4)
+    }
+
+    private func toggleCompletion() {
+        let wasCompleted = item.completed
+
+        withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
+            store.toggle(item)
+        }
+
+        if !wasCompleted {
+            onComplete?()
+        }
+    }
+}
+
+// MARK: - Completion Celebration
+
+private struct CompletionConfettiView: View {
+    let seed: Int
+
+    @State private var isExpanded = false
+
+    private var pieces: [ConfettiPiece] {
+        (0..<34).map { ConfettiPiece(index: $0, seed: seed) }
+    }
+
+    var body: some View {
+        ZStack {
+            ForEach(pieces) { piece in
+                ConfettiPieceView(piece: piece)
+                    .frame(width: piece.size.width, height: piece.size.height)
+                    .scaleEffect(isExpanded ? piece.endScale : 0.35)
+                    .rotationEffect(.degrees(isExpanded ? piece.endRotation : piece.startRotation))
+                    .position(x: 160 + piece.startX, y: 34 + piece.startY)
+                    .offset(x: isExpanded ? piece.endX : 0, y: isExpanded ? piece.endY : 0)
+                    .opacity(isExpanded ? 0 : 1)
+                    .animation(
+                        .easeOut(duration: piece.duration).delay(piece.delay),
+                        value: isExpanded
+                    )
+            }
+
+            Circle()
+                .strokeBorder(Theme.brand.opacity(isExpanded ? 0 : 0.35), lineWidth: 2)
+                .frame(width: isExpanded ? 132 : 18, height: isExpanded ? 132 : 18)
+                .position(x: 160, y: 42)
+                .opacity(isExpanded ? 0 : 1)
+                .animation(.easeOut(duration: 0.55), value: isExpanded)
+        }
+        .onAppear {
+            DispatchQueue.main.async {
+                isExpanded = true
+            }
+        }
+    }
+}
+
+private struct ConfettiPiece: Identifiable {
+    let id: Int
+    let color: Color
+    let size: CGSize
+    let startX: CGFloat
+    let startY: CGFloat
+    let endX: CGFloat
+    let endY: CGFloat
+    let startRotation: Double
+    let endRotation: Double
+    let endScale: CGFloat
+    let delay: Double
+    let duration: Double
+    let shape: ConfettiShape
+
+    init(index: Int, seed: Int) {
+        id = index
+        color = Theme.confettiColors[(index + seed) % Theme.confettiColors.count]
+
+        let spread = ConfettiPiece.value(index, seed, salt: 7)
+        let fall = ConfettiPiece.value(index, seed, salt: 19)
+        let drift = ConfettiPiece.value(index, seed, salt: 31)
+        let spin = ConfettiPiece.value(index, seed, salt: 43)
+
+        size = CGSize(
+            width: CGFloat(5 + (index + seed) % 7),
+            height: CGFloat(index.isMultiple(of: 3) ? 5 : 9 + (index + seed) % 6)
+        )
+        startX = CGFloat((spread - 0.5) * 34)
+        startY = CGFloat((drift - 0.5) * 12)
+        endX = CGFloat((spread - 0.5) * 285)
+        endY = CGFloat(82 + fall * 150)
+        startRotation = Double(index * 19 + seed * 11)
+        endRotation = startRotation + Double(180 + spin * 620)
+        endScale = CGFloat(0.75 + drift * 0.55)
+        delay = Double(index % 9) * 0.018
+        duration = 0.78 + Double(index % 6) * 0.065
+        shape = ConfettiShape(rawValue: (index + seed) % ConfettiShape.allCases.count) ?? .rectangle
+    }
+
+    private static func value(_ index: Int, _ seed: Int, salt: Int) -> Double {
+        let raw = abs((index + 1) * 1103515245 + (seed + 13) * 12345 + salt * 265443576)
+        return Double(raw % 1000) / 1000.0
+    }
+}
+
+private enum ConfettiShape: Int, CaseIterable {
+    case rectangle
+    case circle
+    case capsule
+}
+
+private struct ConfettiPieceView: View {
+    let piece: ConfettiPiece
+
+    var body: some View {
+        switch piece.shape {
+        case .rectangle:
+            RoundedRectangle(cornerRadius: 1.5, style: .continuous)
+                .fill(piece.color)
+        case .circle:
+            Circle()
+                .fill(piece.color)
+        case .capsule:
+            Capsule()
+                .fill(piece.color)
+        }
     }
 }
