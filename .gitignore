@@ -1,5 +1,11 @@
 .build/
 .swiftpm/
+web/node_modules/
+web/.npm-cache/
+web/dist/
+web/*.tsbuildinfo
+web/vite.config.js
+web/vite.config.d.ts
 .DS_Store
 *.xcodeproj/xcuserdata/
 *.xcworkspace/xcuserdata/
