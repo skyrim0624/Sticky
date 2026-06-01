@@ -22,3 +22,9 @@
 
 - [决策]: 撤掉手写材质碎片效果，改用 `canvas-confetti` 做更经典的 canvas 彩纸爆发；第一段从点击位置喷开，第二段补落纸。
 - [进展]: 完成音效换成 OpenGameArt `Pleasing Bell Sound Effect` 的 `pleasing-bell.wav`，作者 Spring Spring，许可 CC0；点击完成后连续播放三次形成“噔噔噔”。
+
+## 2026-06-01 Swift 原生安装版
+
+- [进展]: 将 Web 测试认可的三连 bell 音效移植到 Swift 原生版，完成任务时播放三次短促提示音。
+- [进展]: Swift 原生完成彩纸改为更接近经典彩纸的高数量纸片喷发和下落节奏。
+- [决策]: 本地安装仍使用 Swift 原生 app，不引入 Electron；新增 `script/install_swift_app.sh` 负责 release 构建、打包和安全替换 `/Applications/FloatingTodo.app`。

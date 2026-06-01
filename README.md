@@ -26,5 +26,13 @@ swift build
 ```
 为了实现随 Obsidian 一起启动，您可以配置相关的 Obsidian 本地 Plugin (如上文提供的 JS launcher 代码即可)。
 
+## 📦 打包安装原生 macOS App
+
+```bash
+./script/install_swift_app.sh
+```
+
+这个脚本只打包 Swift 原生版：会先 release 构建，再生成 `dist/FloatingTodo.app`，替换 `/Applications/FloatingTodo.app` 前会校验目标 bundle id 必须是 `com.cmi.floatingtodo`，旧版本会移动到废纸篓备份。
+
 ## License
 MIT

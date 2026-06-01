@@ -1,5 +1,6 @@
 .build/
 .swiftpm/
+dist/
 web/node_modules/
 web/.npm-cache/
 web/dist/

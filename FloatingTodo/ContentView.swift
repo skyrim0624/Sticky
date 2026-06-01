@@ -1,5 +1,6 @@
 import SwiftUI
 import UniformTypeIdentifiers
+import AppKit
 
 // MARK: - Design Tokens
 
@@ -282,6 +283,7 @@ struct ContentView: View {
     }
 
     private func celebrateCompletion() {
+        CompletionSoundPlayer.shared.playTripleChime()
         guard !reduceMotion else { return }
 
         confettiBurst += 1
@@ -577,7 +579,7 @@ private struct CompletionConfettiView: View {
     @State private var isExpanded = false
 
     private var pieces: [ConfettiPiece] {
-        (0..<34).map { ConfettiPiece(index: $0, seed: seed) }
+        (0..<88).map { ConfettiPiece(index: $0, seed: seed) }
     }
 
     var body: some View {
@@ -587,7 +589,7 @@ private struct CompletionConfettiView: View {
                     .frame(width: piece.size.width, height: piece.size.height)
                     .scaleEffect(isExpanded ? piece.endScale : 0.35)
                     .rotationEffect(.degrees(isExpanded ? piece.endRotation : piece.startRotation))
-                    .position(x: 160 + piece.startX, y: 34 + piece.startY)
+                    .position(x: 160 + piece.startX, y: 58 + piece.startY)
                     .offset(x: isExpanded ? piece.endX : 0, y: isExpanded ? piece.endY : 0)
                     .opacity(isExpanded ? 0 : 1)
                     .animation(
@@ -598,8 +600,8 @@ private struct CompletionConfettiView: View {
 
             Circle()
                 .strokeBorder(Theme.brand.opacity(isExpanded ? 0 : 0.35), lineWidth: 2)
-                .frame(width: isExpanded ? 132 : 18, height: isExpanded ? 132 : 18)
-                .position(x: 160, y: 42)
+                .frame(width: isExpanded ? 154 : 18, height: isExpanded ? 154 : 18)
+                .position(x: 160, y: 62)
                 .opacity(isExpanded ? 0 : 1)
                 .animation(.easeOut(duration: 0.55), value: isExpanded)
         }
@@ -634,20 +636,21 @@ private struct ConfettiPiece: Identifiable {
         let fall = ConfettiPiece.value(index, seed, salt: 19)
         let drift = ConfettiPiece.value(index, seed, salt: 31)
         let spin = ConfettiPiece.value(index, seed, salt: 43)
+        let lift = ConfettiPiece.value(index, seed, salt: 59)
 
         size = CGSize(
-            width: CGFloat(5 + (index + seed) % 7),
-            height: CGFloat(index.isMultiple(of: 3) ? 5 : 9 + (index + seed) % 6)
+            width: CGFloat(4 + (index + seed) % 7),
+            height: CGFloat(index.isMultiple(of: 3) ? 4 : 8 + (index + seed) % 8)
         )
-        startX = CGFloat((spread - 0.5) * 34)
-        startY = CGFloat((drift - 0.5) * 12)
-        endX = CGFloat((spread - 0.5) * 285)
-        endY = CGFloat(82 + fall * 150)
+        startX = CGFloat((spread - 0.5) * 22)
+        startY = CGFloat((drift - 0.5) * 14)
+        endX = CGFloat((spread - 0.5) * 335)
+        endY = CGFloat(56 + fall * 190 - lift * 42)
         startRotation = Double(index * 19 + seed * 11)
-        endRotation = startRotation + Double(180 + spin * 620)
-        endScale = CGFloat(0.75 + drift * 0.55)
-        delay = Double(index % 9) * 0.018
-        duration = 0.78 + Double(index % 6) * 0.065
+        endRotation = startRotation + Double(220 + spin * 720)
+        endScale = CGFloat(0.72 + drift * 0.5)
+        delay = Double(index % 14) * 0.012
+        duration = 0.74 + Double(index % 8) * 0.06
         shape = ConfettiShape(rawValue: (index + seed) % ConfettiShape.allCases.count) ?? .rectangle
     }
 
@@ -678,5 +681,40 @@ private struct ConfettiPieceView: View {
             Capsule()
                 .fill(piece.color)
         }
+    }
+}
+
+private final class CompletionSoundPlayer: NSObject, NSSoundDelegate {
+    static let shared = CompletionSoundPlayer()
+
+    private var activeSounds: [NSSound] = []
+    private let delays: [TimeInterval] = [0, 0.14, 0.28]
+
+    func playTripleChime() {
+        delays.forEach { delay in
+            DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
+                self?.playBell()
+            }
+        }
+    }
+
+    private func playBell() {
+        guard let soundURL = Bundle.module.url(
+            forResource: "task-complete-bell",
+            withExtension: "wav",
+            subdirectory: "Resources"
+        ), let sound = NSSound(contentsOf: soundURL, byReference: false) else {
+            NSSound.beep()
+            return
+        }
+
+        sound.volume = 0.48
+        sound.delegate = self
+        activeSounds.append(sound)
+        sound.play()
+    }
+
+    func sound(_ sound: NSSound, didFinishPlaying flag: Bool) {
+        activeSounds.removeAll { $0 === sound }
     }
 }
