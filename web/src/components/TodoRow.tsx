@@ -28,7 +28,7 @@ export function TodoRow({
   onUpdateText,
   onUpdateNote
 }: TodoRowProps) {
-  const [expanded, setExpanded] = useState(!item.completed && Boolean(item.note));
+  const [expanded, setExpanded] = useState(false);
   const [editingTitle, setEditingTitle] = useState(false);
   const [titleText, setTitleText] = useState(item.text);
   const [noteText, setNoteText] = useState(item.note);

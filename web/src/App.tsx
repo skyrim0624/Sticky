@@ -1,4 +1,4 @@
-import { Check, Clipboard, Download, Plus, RotateCcw } from "lucide-react";
+import { Check, Clipboard, Download, MoreHorizontal, Plus, RotateCcw } from "lucide-react";
 import confetti from "canvas-confetti";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, MouseEvent } from "react";
@@ -206,6 +206,26 @@ export function App() {
   return (
     <main className="app-shell">
       <section className="todo-panel" aria-label="Floating Todo Web">
+        <div className="window-chrome">
+          <div className="traffic-lights" aria-hidden="true">
+            <span className="traffic-dot traffic-red" />
+            <span className="traffic-dot traffic-yellow" />
+            <span className="traffic-dot traffic-green" />
+          </div>
+
+          <div className="chrome-actions">
+            <div className="progress-ring" style={{ "--progress": progress } as CSSProperties}>
+              <Check size={11} strokeWidth={3} />
+            </div>
+            <span className="chrome-progress">
+              {completed.length}/{Math.max(todos.length, 1)}
+            </span>
+            <button className="more-button" type="button" title="更多" aria-label="更多">
+              <MoreHorizontal size={18} strokeWidth={3} />
+            </button>
+          </div>
+        </div>
+
         <nav className="bookmark-sidebar" aria-label="便贴书签">
           {pages.map((page) => {
             const pageTitle = displayPageTitle(page);
@@ -242,13 +262,7 @@ export function App() {
                 onChange={(event) => updateActivePage((page) => ({ ...page, title: event.target.value }))}
               />
               <p className="task-count">
-                <strong>{pending.length}</strong> 项待办
-                {completed.length > 0 && (
-                  <>
-                    <span> · </span>
-                    <strong className="done-count">{completed.length}</strong> 已完成
-                  </>
-                )}
+                专注当下，一件件完成。
               </p>
             </div>
 

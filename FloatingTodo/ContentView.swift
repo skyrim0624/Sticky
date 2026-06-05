@@ -23,12 +23,12 @@ private enum Theme {
     static let noteText = Color.primary.opacity(0.55)
     static let noteBg = Color.primary.opacity(0.025)
     static let noteBorder = Color.primary.opacity(0.06)
-    static let tabActiveTop = Color(red: 0.82, green: 0.55, blue: 0.24)
-    static let tabActiveBottom = Color(red: 0.64, green: 0.35, blue: 0.13)
-    static let tabInactiveTop = Color(red: 1.00, green: 0.91, blue: 0.72)
-    static let tabInactiveBottom = Color(red: 0.94, green: 0.77, blue: 0.43)
-    static let tabAddTop = Color(red: 1.00, green: 0.90, blue: 0.66)
-    static let tabAddBottom = Color(red: 0.92, green: 0.69, blue: 0.31)
+    static let tabActiveTop = Color(red: 0.94, green: 0.69, blue: 0.34)
+    static let tabActiveBottom = Color(red: 0.82, green: 0.50, blue: 0.17)
+    static let tabInactiveTop = Color(red: 1.00, green: 0.96, blue: 0.86)
+    static let tabInactiveBottom = Color(red: 0.94, green: 0.83, blue: 0.58)
+    static let tabAddTop = Color(red: 1.00, green: 0.92, blue: 0.70)
+    static let tabAddBottom = Color(red: 0.91, green: 0.72, blue: 0.37)
     static let tabText = Color(red: 0.30, green: 0.18, blue: 0.08)
     static let tabBorder = Color(red: 0.48, green: 0.29, blue: 0.12)
     static let tabSpine = Color(red: 0.54, green: 0.34, blue: 0.15).opacity(0.24)
@@ -70,8 +70,41 @@ struct ContentView: View {
 
     var body: some View {
         ZStack(alignment: .topLeading) {
+            outerWindow
+
+            bookmarkEdge
+                .offset(x: 500, y: 112)
+
+            if showsCompletionConfetti && !reduceMotion {
+                CompletionConfettiView(seed: confettiBurst)
+                    .frame(width: 470, height: 320)
+                    .offset(x: 32, y: 84)
+                    .allowsHitTesting(false)
+                    .transition(.opacity)
+                    .id(confettiBurst)
+            }
+        }
+        .frame(width: 650, height: 560, alignment: .topLeading)
+        .environment(\.colorScheme, .light)
+        .onChange(of: store.activePageId) {
+            newTodoText = ""
+            draggingId = nil
+            dragAccumulated = 0
+        }
+    }
+
+    private var outerWindow: some View {
+        VStack(spacing: 0) {
+            chromeBar
+
             VStack(spacing: 0) {
                 headerView
+
+                Rectangle()
+                    .fill(Theme.divider)
+                    .frame(height: 0.6)
+                    .padding(.horizontal, 30)
+                    .padding(.top, 2)
 
                 if store.todos.isEmpty {
                     emptyState
@@ -81,57 +114,84 @@ struct ContentView: View {
 
                 inputBar
             }
-            .frame(width: 320)
+            .frame(width: 452, height: 392)
             .background(
-                ZStack {
-                    RoundedRectangle(cornerRadius: Theme.cornerRadius, style: .continuous)
-                        .fill(Color(white: 1.0, opacity: 0.75))
-                        .background(.ultraThinMaterial)
-
-                    LinearGradient(
-                        colors: [Color.white.opacity(0.8), Color.white.opacity(0.1)],
-                        startPoint: .topLeading, endPoint: .bottomTrailing
-                    )
-                }
+                RoundedRectangle(cornerRadius: 26, style: .continuous)
+                    .fill(Color.white.opacity(0.82))
+                    .shadow(color: .white.opacity(0.55), radius: 0, x: 0, y: 1)
             )
-            .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadius, style: .continuous))
-            .shadow(color: .black.opacity(0.1), radius: 40, x: 0, y: 20)
-            .shadow(color: .black.opacity(0.04), radius: 10, x: 0, y: 4)
             .overlay(
-                RoundedRectangle(cornerRadius: Theme.cornerRadius, style: .continuous)
-                    .strokeBorder(Color.white.opacity(0.5), lineWidth: 0.5)
+                RoundedRectangle(cornerRadius: 26, style: .continuous)
+                    .strokeBorder(Color.white.opacity(0.72), lineWidth: 1)
             )
-            .overlay(alignment: .trailing) {
-                RoundedRectangle(cornerRadius: 2, style: .continuous)
-                    .fill(Theme.tabSpine)
-                    .frame(width: 4)
-                    .padding(.vertical, 20)
-            }
-
-            bookmarkEdge
-                .offset(x: 304, y: 68)
-
-            if showsCompletionConfetti && !reduceMotion {
-                CompletionConfettiView(seed: confettiBurst)
-                    .frame(width: 320, height: 260)
-                    .allowsHitTesting(false)
-                    .transition(.opacity)
-                    .id(confettiBurst)
-            }
+            .padding(.top, 10)
         }
-        .frame(width: 376, alignment: .leading)
-        .environment(\.colorScheme, .light)
-        .onChange(of: store.activePageId) {
-            newTodoText = ""
-            draggingId = nil
-            dragAccumulated = 0
+        .frame(width: 532, height: 520, alignment: .top)
+        .background(
+            ZStack {
+                RoundedRectangle(cornerRadius: 34, style: .continuous)
+                    .fill(Color.white.opacity(0.58))
+                    .background(.ultraThinMaterial)
+
+                LinearGradient(
+                    colors: [Color.white.opacity(0.72), Color.white.opacity(0.18)],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+            }
+        )
+        .clipShape(RoundedRectangle(cornerRadius: 34, style: .continuous))
+        .shadow(color: .black.opacity(0.15), radius: 34, x: 0, y: 22)
+        .shadow(color: .black.opacity(0.07), radius: 10, x: 0, y: 4)
+        .overlay(
+            RoundedRectangle(cornerRadius: 34, style: .continuous)
+                .strokeBorder(Color.white.opacity(0.72), lineWidth: 1.2)
+        )
+        .overlay(alignment: .trailing) {
+            Rectangle()
+                .fill(Theme.tabSpine)
+                .frame(width: 8, height: 250)
+                .offset(x: 5, y: 33)
         }
+    }
+
+    private var chromeBar: some View {
+        HStack(alignment: .center, spacing: 10) {
+            trafficDot(Color(red: 1.0, green: 0.32, blue: 0.24))
+            trafficDot(Color(red: 1.0, green: 0.73, blue: 0.18))
+            trafficDot(Color(red: 0.26, green: 0.77, blue: 0.28))
+
+            Spacer()
+
+            progressRing
+            Text("\(completed.count)/\(max(store.todos.count, 1))")
+                .font(.system(size: 15, weight: .medium, design: .rounded))
+                .foregroundStyle(Theme.textSecondary)
+
+            Image(systemName: "ellipsis")
+                .font(.system(size: 16, weight: .bold))
+                .foregroundStyle(Theme.textSecondary)
+                .frame(width: 36, height: 36)
+                .background(Circle().fill(Color.white.opacity(0.58)))
+                .overlay(Circle().stroke(Color.primary.opacity(0.08), lineWidth: 0.8))
+        }
+        .padding(.horizontal, 34)
+        .padding(.top, 22)
+        .frame(height: 78)
+    }
+
+    private func trafficDot(_ color: Color) -> some View {
+        Circle()
+            .fill(color)
+            .frame(width: 17, height: 17)
+            .overlay(Circle().stroke(Color.primary.opacity(0.12), lineWidth: 0.8))
+            .shadow(color: color.opacity(0.28), radius: 4, x: 0, y: 2)
     }
 
     // MARK: - Bookmark Sidebar
 
     private var bookmarkEdge: some View {
-        VStack(spacing: 7) {
+        VStack(spacing: 14) {
             ForEach(store.pages) { page in
                 BookmarkButton(
                     page: page,
@@ -150,13 +210,13 @@ struct ContentView: View {
                 }
             } label: {
                 Image(systemName: "plus")
-                    .font(.system(size: 14, weight: .bold))
-                    .frame(width: 50, height: 40)
+                    .font(.system(size: 28, weight: .medium))
+                    .frame(width: 114, height: 62)
             }
             .buttonStyle(.plain)
             .foregroundStyle(Theme.tabText)
             .background(
-                EdgeTabShape(chamfer: 10)
+                EdgeTabShape(chamfer: 14)
                     .fill(
                         LinearGradient(
                             colors: [Theme.tabAddTop, Theme.tabAddBottom],
@@ -164,35 +224,35 @@ struct ContentView: View {
                             endPoint: .bottom
                         )
                     )
-                    .shadow(color: .black.opacity(0.14), radius: 9, x: 3, y: 4)
+                    .shadow(color: .black.opacity(0.18), radius: 16, x: 5, y: 8)
             )
             .overlay(
-                EdgeTabShape(chamfer: 10)
-                    .strokeBorder(Theme.tabBorder.opacity(0.42), lineWidth: 1)
+                EdgeTabShape(chamfer: 14)
+                    .strokeBorder(Theme.tabBorder.opacity(0.46), lineWidth: 1.1)
             )
             .overlay(
-            EdgeTabShape(chamfer: 10)
-                .strokeBorder(Color.white.opacity(0.38), lineWidth: 0.8)
-                .padding(2)
-        )
+                EdgeTabShape(chamfer: 14)
+                    .strokeBorder(Color.white.opacity(0.45), lineWidth: 0.8)
+                    .padding(3)
+            )
             .overlay(alignment: .leading) {
                 Rectangle()
-                    .fill(Theme.tabBorder.opacity(0.18))
-                    .frame(width: 5)
-                    .padding(.vertical, 3)
+                    .fill(Theme.tabBorder.opacity(0.2))
+                    .frame(width: 7)
+                    .padding(.vertical, 5)
             }
             .help("新建便贴")
 
             Spacer(minLength: 0)
         }
-        .frame(width: 64, alignment: .leading)
+        .frame(width: 126, alignment: .leading)
     }
 
     // MARK: - Header
 
     private var headerView: some View {
-        HStack(alignment: .center, spacing: 12) {
-            VStack(alignment: .leading, spacing: 3) {
+        HStack(alignment: .top, spacing: 12) {
+            VStack(alignment: .leading, spacing: 9) {
                 TextField(
                     "这里可以写标题...",
                     text: Binding(
@@ -200,38 +260,21 @@ struct ContentView: View {
                         set: { store.updateActivePageTitle($0) }
                     )
                 )
-                    .font(.system(size: 22, weight: .bold, design: .rounded))
+                    .font(.system(size: 30, weight: .bold, design: .rounded))
                     .foregroundStyle(Theme.text)
                     .textFieldStyle(.plain)
+                    .frame(height: 36)
 
-                if !store.todos.isEmpty {
-                    HStack(spacing: 0) {
-                        Text("\(pending.count)")
-                            .foregroundStyle(Theme.accent)
-                        Text(" 项待办")
-                            .foregroundStyle(Theme.textSecondary)
-                        if !completed.isEmpty {
-                            Text(" · ")
-                                .foregroundStyle(Theme.textTertiary)
-                            Text("\(completed.count)")
-                                .foregroundStyle(Theme.success)
-                            Text(" 已完成")
-                                .foregroundStyle(Theme.textSecondary)
-                        }
-                    }
-                    .font(.system(size: 12, weight: .regular, design: .default))
-                }
+                Text("专注当下，一件件完成。")
+                    .font(.system(size: 15, weight: .regular, design: .default))
+                    .foregroundStyle(Theme.textSecondary)
             }
 
             Spacer()
-
-            if !store.todos.isEmpty {
-                progressRing
-            }
         }
-        .padding(.horizontal, 16)
-        .padding(.top, 14)
-        .padding(.bottom, 14)
+        .padding(.horizontal, 30)
+        .padding(.top, 24)
+        .padding(.bottom, 12)
     }
 
     private var progressRing: some View {
@@ -271,7 +314,7 @@ struct ContentView: View {
                 .font(.system(size: 13, weight: .medium, design: .rounded))
                 .foregroundStyle(Theme.textTertiary)
         }
-        .frame(maxWidth: .infinity, minHeight: 100)
+        .frame(maxWidth: .infinity, minHeight: 168)
         .padding(.vertical, 16)
     }
 
@@ -279,7 +322,7 @@ struct ContentView: View {
 
     private var todoList: some View {
         ScrollView(.vertical, showsIndicators: false) {
-            VStack(spacing: 6) {
+            VStack(spacing: 8) {
                 ForEach(Array(pending.enumerated()), id: \.element.id) { index, item in
                     pendingRow(item: item, index: index)
                 }
@@ -304,10 +347,10 @@ struct ContentView: View {
                     completedRow(item: item)
                 }
             }
-            .padding(.horizontal, 8)
-            .padding(.vertical, 4)
+            .padding(.horizontal, 26)
+            .padding(.vertical, 14)
         }
-        .frame(maxHeight: 360)
+        .frame(maxHeight: 226)
     }
 
     /// 待办行：带拖拽手柄和优先级颜色
@@ -317,7 +360,7 @@ struct ContentView: View {
             store: store,
             priorityColor: Theme.priorityColor(index: index, total: pending.count),
             isDragging: draggingId == item.id,
-            showGrip: true,
+            showGrip: false,
             onComplete: celebrateCompletion
         )
         .simultaneousGesture(
@@ -397,35 +440,46 @@ struct ContentView: View {
         HStack(spacing: 10) {
             Button(action: submitNewTodo) {
                 ZStack {
-                    RoundedRectangle(cornerRadius: 6, style: .continuous)
-                        .fill(inputFocused ? Theme.accent.opacity(0.12) : Theme.accentSoft)
+                    Circle()
+                        .fill(inputFocused ? Theme.accent.opacity(0.13) : Color.white.opacity(0.72))
                         .animation(.easeOut(duration: 0.2), value: inputFocused)
 
                     Image(systemName: "plus")
-                        .font(.system(size: 11, weight: .bold))
+                        .font(.system(size: 22, weight: .regular))
                         .foregroundStyle(Theme.accent)
                 }
-                .frame(width: 22, height: 22)
+                .frame(width: 45, height: 45)
             }
             .buttonStyle(.plain)
             .help("添加待办")
 
             TextField("添加新待办…", text: $newTodoText)
                 .textFieldStyle(.plain)
-                .font(.system(size: 14, weight: .medium, design: .rounded))
-                .foregroundStyle(Theme.text)
+                .font(.system(size: 16, weight: .regular, design: .rounded))
+                .foregroundStyle(Theme.textSecondary)
                 .focused($inputFocused)
                 .onSubmit {
                     submitNewTodo()
                 }
+
+            Image(systemName: "return")
+                .font(.system(size: 16, weight: .medium))
+                .foregroundStyle(Theme.textSecondary.opacity(0.62))
+                .padding(.trailing, 12)
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 10)
-        .background(Theme.inputBg)
+        .frame(height: 54)
+        .background(
+            Capsule()
+                .fill(Color.white.opacity(0.66))
+                .overlay(Capsule().strokeBorder(Color.primary.opacity(0.08), lineWidth: 0.8))
+        )
+        .padding(.horizontal, 24)
+        .padding(.bottom, 20)
         .overlay(
             Rectangle()
                 .fill(Theme.divider)
-                .frame(height: 0.5),
+                .frame(height: 0.6)
+                .padding(.horizontal, 30),
             alignment: .top
         )
     }
@@ -492,36 +546,36 @@ private struct BookmarkButton: View {
         Button(action: action) {
             HStack(spacing: 0) {
                 Text(shortTitle)
-                    .font(.system(size: 10, weight: .heavy, design: .rounded))
+                    .font(.system(size: isActive ? 21 : 20, weight: .bold, design: .rounded))
                     .lineLimit(1)
-                    .minimumScaleFactor(0.72)
-                    .padding(.leading, 11)
-                    .padding(.trailing, 12)
+                    .minimumScaleFactor(0.78)
+                    .padding(.leading, 34)
+                    .padding(.trailing, 20)
             }
-            .frame(width: isActive ? 60 : 52, height: isActive ? 46 : 42, alignment: .leading)
-            .contentShape(EdgeTabShape(chamfer: 10))
+            .frame(width: isActive ? 122 : 112, height: isActive ? 68 : 62, alignment: .leading)
+            .contentShape(EdgeTabShape(chamfer: 14))
         }
         .buttonStyle(.plain)
-        .foregroundStyle(isActive ? Color.white : Theme.tabText)
+        .foregroundStyle(isActive ? Color(red: 0.16, green: 0.10, blue: 0.05) : Theme.tabText.opacity(0.84))
         .background(
-            EdgeTabShape(chamfer: 10)
+            EdgeTabShape(chamfer: 14)
                 .fill(tabGradient)
-                .shadow(color: .black.opacity(isActive ? 0.2 : 0.12), radius: isActive ? 12 : 8, x: 3, y: 4)
+                .shadow(color: .black.opacity(isActive ? 0.24 : 0.16), radius: isActive ? 18 : 13, x: 5, y: 8)
         )
         .overlay(
-            EdgeTabShape(chamfer: 10)
-                .strokeBorder(Theme.tabBorder.opacity(isActive ? 0.62 : 0.4), lineWidth: 1)
+            EdgeTabShape(chamfer: 14)
+                .strokeBorder(Theme.tabBorder.opacity(isActive ? 0.68 : 0.38), lineWidth: isActive ? 1.4 : 1.0)
         )
         .overlay(
-            EdgeTabShape(chamfer: 10)
-                .strokeBorder(Color.white.opacity(isActive ? 0.28 : 0.46), lineWidth: 0.8)
-                .padding(2)
+            EdgeTabShape(chamfer: 14)
+                .strokeBorder(Color.white.opacity(isActive ? 0.34 : 0.52), lineWidth: 0.8)
+                .padding(3)
         )
         .overlay(alignment: .leading) {
             Rectangle()
-                .fill(Theme.tabBorder.opacity(isActive ? 0.22 : 0.16))
-                .frame(width: 5)
-                .padding(.vertical, 3)
+                .fill(Theme.tabBorder.opacity(isActive ? 0.26 : 0.16))
+                .frame(width: 7)
+                .padding(.vertical, 5)
         }
         .help(displayTitle)
         .zIndex(isActive ? 1 : 0)
@@ -550,8 +604,8 @@ struct TodoRowContent: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: 0) {
-                // 拖拽手柄
-                if showGrip {
+                // 拖拽仍保留，但默认不露出旧手柄，避免破坏参考图的干净列表。
+                if showGrip && isHovering {
                     Image(systemName: "line.3.horizontal")
                         .font(.system(size: 8, weight: .medium))
                         .foregroundStyle(isHovering ? Theme.textSecondary : Theme.textTertiary.opacity(0.5))
@@ -566,35 +620,40 @@ struct TodoRowContent: View {
                         }
                 }
 
-                // 折叠按钮
-                noteChevron
+                if hasNote || isHovering {
+                    noteChevron
+                }
 
                 HStack(spacing: 10) {
-                    // 优先级圆圈
                     ZStack {
                         if item.completed {
-                            Image(systemName: "checkmark")
-                                .font(.system(size: 10, weight: .semibold))
-                                .foregroundStyle(Theme.textTertiary)
+                            Circle()
+                                .fill(Theme.brand)
+                                .frame(width: 24, height: 24)
+                                .overlay(
+                                    Image(systemName: "checkmark")
+                                        .font(.system(size: 12, weight: .bold))
+                                        .foregroundStyle(Color.white)
+                                )
                                 .transition(.scale(scale: 0.5).combined(with: .opacity))
                         } else {
                             Circle()
-                                .fill((priorityColor ?? Theme.checkboxBorder).opacity(0.15))
-                                .frame(width: 13, height: 13)
+                                .fill(Color.white.opacity(0.38))
+                                .frame(width: 24, height: 24)
                                 .overlay(
                                     Circle()
-                                        .stroke(priorityColor ?? Theme.checkboxBorder, lineWidth: 1.5)
-                                        .frame(width: 13, height: 13)
+                                        .stroke(Color.primary.opacity(0.26), lineWidth: 1.2)
+                                        .frame(width: 24, height: 24)
                                 )
                                 .transition(.scale(scale: 0.5).combined(with: .opacity))
                         }
                     }
-                    .frame(width: 20, height: 20)
+                    .frame(width: 26, height: 26)
 
                     if isEditingTitle && !item.completed {
                         TextField("任务名称", text: $titleText)
                             .textFieldStyle(.plain)
-                            .font(.system(size: 14, weight: .medium, design: .rounded))
+                            .font(.system(size: 16, weight: .medium, design: .rounded))
                             .foregroundStyle(Theme.text)
                             .focused($titleFocused)
                             .onSubmit {
@@ -608,7 +667,7 @@ struct TodoRowContent: View {
                             }
                     } else {
                         Text(item.text)
-                            .font(.system(size: 14, weight: .medium, design: .rounded))
+                            .font(.system(size: 16, weight: .medium, design: .rounded))
                             .foregroundStyle(item.completed ? Theme.textTertiary : Theme.text)
                             .blur(radius: item.completed ? 0.8 : 0)
                             .scaleEffect(item.completed ? 0.98 : 1.0, anchor: .leading)
@@ -659,7 +718,7 @@ struct TodoRowContent: View {
                     .transition(.opacity.combined(with: .move(edge: .top)))
             }
         }
-        .padding(.horizontal, 10)
+        .padding(.horizontal, 4)
         .padding(.vertical, 7)
         .background(
             RoundedRectangle(cornerRadius: Theme.innerRadius, style: .continuous)
