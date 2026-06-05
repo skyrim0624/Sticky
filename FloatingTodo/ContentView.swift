@@ -60,9 +60,7 @@ struct ContentView: View {
     private var completed: [TodoItem] { store.todos.filter { $0.completed } }
 
     var body: some View {
-        HStack(spacing: 0) {
-            bookmarkSidebar
-
+        ZStack(alignment: .topLeading) {
             VStack(spacing: 0) {
                 headerView
 
@@ -75,38 +73,39 @@ struct ContentView: View {
                 inputBar
             }
             .frame(width: 320)
-        }
-        .frame(width: 372)
-        .background(
-            ZStack {
-                RoundedRectangle(cornerRadius: Theme.cornerRadius, style: .continuous)
-                    .fill(Color(white: 1.0, opacity: 0.75))
-                    .background(.ultraThinMaterial)
+            .background(
+                ZStack {
+                    RoundedRectangle(cornerRadius: Theme.cornerRadius, style: .continuous)
+                        .fill(Color(white: 1.0, opacity: 0.75))
+                        .background(.ultraThinMaterial)
 
-                LinearGradient(
-                    colors: [Color.white.opacity(0.8), Color.white.opacity(0.1)],
-                    startPoint: .topLeading, endPoint: .bottomTrailing
-                )
-            }
-        )
-        .environment(\.colorScheme, .light)
-        .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadius, style: .continuous))
-        .shadow(color: .black.opacity(0.1), radius: 40, x: 0, y: 20)
-        .shadow(color: .black.opacity(0.04), radius: 10, x: 0, y: 4)
-        .overlay(
-            RoundedRectangle(cornerRadius: Theme.cornerRadius, style: .continuous)
-                .strokeBorder(Color.white.opacity(0.5), lineWidth: 0.5)
-        )
-        .overlay(alignment: .top) {
+                    LinearGradient(
+                        colors: [Color.white.opacity(0.8), Color.white.opacity(0.1)],
+                        startPoint: .topLeading, endPoint: .bottomTrailing
+                    )
+                }
+            )
+            .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadius, style: .continuous))
+            .shadow(color: .black.opacity(0.1), radius: 40, x: 0, y: 20)
+            .shadow(color: .black.opacity(0.04), radius: 10, x: 0, y: 4)
+            .overlay(
+                RoundedRectangle(cornerRadius: Theme.cornerRadius, style: .continuous)
+                    .strokeBorder(Color.white.opacity(0.5), lineWidth: 0.5)
+            )
+
+            bookmarkEdge
+                .offset(x: 306, y: 82)
+
             if showsCompletionConfetti && !reduceMotion {
                 CompletionConfettiView(seed: confettiBurst)
                     .frame(width: 320, height: 260)
-                    .padding(.leading, 52)
                     .allowsHitTesting(false)
                     .transition(.opacity)
                     .id(confettiBurst)
             }
         }
+        .frame(width: 356, alignment: .leading)
+        .environment(\.colorScheme, .light)
         .onChange(of: store.activePageId) {
             newTodoText = ""
             draggingId = nil
@@ -116,7 +115,7 @@ struct ContentView: View {
 
     // MARK: - Bookmark Sidebar
 
-    private var bookmarkSidebar: some View {
+    private var bookmarkEdge: some View {
         VStack(spacing: 7) {
             ForEach(store.pages) { page in
                 BookmarkButton(
@@ -137,27 +136,36 @@ struct ContentView: View {
             } label: {
                 Image(systemName: "plus")
                     .font(.system(size: 12, weight: .semibold))
-                    .frame(width: 34, height: 34)
+                    .frame(width: 38, height: 32)
             }
             .buttonStyle(.plain)
-            .foregroundStyle(Theme.textSecondary)
+            .foregroundStyle(Theme.textSecondary.opacity(0.8))
             .background(
-                RoundedRectangle(cornerRadius: 9, style: .continuous)
-                    .fill(Theme.accentSoft)
+                UnevenRoundedRectangle(
+                    topLeadingRadius: 4,
+                    bottomLeadingRadius: 4,
+                    bottomTrailingRadius: 9,
+                    topTrailingRadius: 9,
+                    style: .continuous
+                )
+                    .fill(Color.white.opacity(0.58))
+                    .shadow(color: .black.opacity(0.06), radius: 7, x: 2, y: 3)
+            )
+            .overlay(
+                UnevenRoundedRectangle(
+                    topLeadingRadius: 4,
+                    bottomLeadingRadius: 4,
+                    bottomTrailingRadius: 9,
+                    topTrailingRadius: 9,
+                    style: .continuous
+                )
+                    .strokeBorder(Color.primary.opacity(0.07), lineWidth: 0.5)
             )
             .help("新建便贴")
 
             Spacer(minLength: 0)
         }
-        .frame(width: 52)
-        .padding(.vertical, 12)
-        .background(Color.white.opacity(0.18))
-        .overlay(
-            Rectangle()
-                .fill(Theme.divider)
-                .frame(width: 0.5),
-            alignment: .trailing
-        )
+        .frame(width: 46, alignment: .leading)
     }
 
     // MARK: - Header
@@ -428,24 +436,50 @@ private struct BookmarkButton: View {
 
     var body: some View {
         Button(action: action) {
-            VStack(spacing: 3) {
-                Image(systemName: isActive ? "bookmark.fill" : "bookmark")
-                    .font(.system(size: 12, weight: .semibold))
+            HStack(spacing: 0) {
                 Text(shortTitle)
-                    .font(.system(size: 9, weight: .semibold, design: .rounded))
+                    .font(.system(size: 9, weight: .bold, design: .rounded))
                     .lineLimit(1)
                     .minimumScaleFactor(0.72)
+                    .padding(.leading, 9)
+                    .padding(.trailing, 6)
             }
-            .frame(width: 38, height: 42)
-            .contentShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+            .frame(width: isActive ? 46 : 38, height: 34, alignment: .leading)
+            .contentShape(
+                UnevenRoundedRectangle(
+                    topLeadingRadius: 4,
+                    bottomLeadingRadius: 4,
+                    bottomTrailingRadius: 10,
+                    topTrailingRadius: 10,
+                    style: .continuous
+                )
+            )
         }
         .buttonStyle(.plain)
-        .foregroundStyle(isActive ? Theme.brand : Theme.textSecondary)
+        .foregroundStyle(isActive ? Theme.brand : Theme.textSecondary.opacity(0.8))
         .background(
-            RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .fill(isActive ? Theme.brand.opacity(0.11) : Color.clear)
+            UnevenRoundedRectangle(
+                topLeadingRadius: 4,
+                bottomLeadingRadius: 4,
+                bottomTrailingRadius: 10,
+                topTrailingRadius: 10,
+                style: .continuous
+            )
+                .fill(isActive ? Theme.brand.opacity(0.12) : Color.white.opacity(0.58))
+                .shadow(color: .black.opacity(isActive ? 0.1 : 0.055), radius: isActive ? 9 : 6, x: 2, y: 3)
+        )
+        .overlay(
+            UnevenRoundedRectangle(
+                topLeadingRadius: 4,
+                bottomLeadingRadius: 4,
+                bottomTrailingRadius: 10,
+                topTrailingRadius: 10,
+                style: .continuous
+            )
+                .strokeBorder(isActive ? Theme.brand.opacity(0.16) : Color.primary.opacity(0.07), lineWidth: 0.5)
         )
         .help(displayTitle)
+        .zIndex(isActive ? 1 : 0)
     }
 }
 

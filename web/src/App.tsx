@@ -1,4 +1,4 @@
-import { Bookmark, Check, Clipboard, Download, Plus, RotateCcw } from "lucide-react";
+import { Check, Clipboard, Download, Plus, RotateCcw } from "lucide-react";
 import confetti from "canvas-confetti";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, MouseEvent } from "react";
@@ -221,7 +221,6 @@ export function App() {
                 data-active={isActive}
                 onClick={() => selectPage(page.id)}
               >
-                <Bookmark size={13} strokeWidth={2.2} fill={isActive ? "currentColor" : "none"} />
                 <span>{shortBookmarkTitle(pageTitle)}</span>
               </button>
             );
