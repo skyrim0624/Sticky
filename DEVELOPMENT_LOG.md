@@ -19,6 +19,12 @@
 - [进展]: Swift 原生版和 Web 原型均加重页签颜色、描边、投影和右侧纸边脊线，并调整位置避免遮挡顶部进度圈。
 - [验证]: `swift build`、`npm run build`、浏览器桌面验证和 390px 窄屏无横向溢出验证已通过；已重新安装 `/Applications/FloatingTodo.app`。
 
+## 2026-06-05 斜切索引签二次优化
+
+- [决策]: 上一版仍偏按钮感；改参考实体 notebook index tabs 和 Image Gen 方向图，页签外轮廓改为斜切索引签，降低土棕感，改成琥珀活动签与米黄色非活动签。
+- [进展]: Swift 原生版新增 `EdgeTabShape`，Web 版用 `clip-path` 同步斜切轮廓；页签根部加入压线，强化“夹在纸边里”的感觉。
+- [验证]: `swift build`、`npm run build`、浏览器桌面验证和 390px 窄屏无横向溢出验证已通过；已重新安装 `/Applications/FloatingTodo.app`。
+
 ## 2026-06-01
 
 - [进展]: 为任务完成动作加入彩纸庆祝动效，提升点击完成后的即时成就感。
