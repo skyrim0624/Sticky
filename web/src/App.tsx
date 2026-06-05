@@ -191,9 +191,9 @@ export function App() {
     setDragState(null);
   }
 
-  function addPage() {
+  function addPage(title?: string) {
     setWorkspace((current) => {
-      const page = createPage(current.pages.length + 1);
+      const page = createPage(current.pages.length + 1, title);
       return {
         pages: [...current.pages, page],
         activePageId: page.id
@@ -245,7 +245,19 @@ export function App() {
               </button>
             );
           })}
-          <button className="bookmark-add" type="button" title="新建便贴" aria-label="新建便贴" onClick={addPage}>
+          {pages.length < 2 && (
+            <button
+              className="bookmark-tab"
+              type="button"
+              title="灵感"
+              aria-label="新建灵感便贴"
+              data-active={false}
+              onClick={() => addPage("灵感")}
+            >
+              <span>灵感</span>
+            </button>
+          )}
+          <button className="bookmark-add" type="button" title="新建便贴" aria-label="新建便贴" onClick={() => addPage()}>
             <Plus size={13} strokeWidth={3} />
           </button>
         </nav>
@@ -291,36 +303,12 @@ export function App() {
               </div>
             ) : (
               <>
-                {pending.map((item, index) => (
+                {todos.map((item, index) => (
                   <TodoRow
                     key={item.id}
                     item={item}
                     index={index}
-                    totalPending={pending.length}
-                    dragState={dragState}
-                    onDragStateChange={setDragState}
-                    onMovePending={movePending}
-                    onToggle={toggleTodo}
-                    onDelete={deleteTodo}
-                    onUpdateText={updateText}
-                    onUpdateNote={updateNote}
-                  />
-                ))}
-
-                {pending.length > 0 && completed.length > 0 && (
-                  <div className="completed-divider">
-                    <span />
-                    <p>已完成</p>
-                    <span />
-                  </div>
-                )}
-
-                {completed.map((item) => (
-                  <TodoRow
-                    key={item.id}
-                    item={item}
-                    index={0}
-                    totalPending={1}
+                    totalPending={Math.max(pending.length, 1)}
                     dragState={dragState}
                     onDragStateChange={setDragState}
                     onMovePending={movePending}

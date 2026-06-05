@@ -1,4 +1,4 @@
-import { ChevronRight, GripHorizontal, X } from "lucide-react";
+import { Star, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { CSSProperties, MouseEvent } from "react";
 import type { DragState, TodoItem } from "../types";
@@ -28,21 +28,16 @@ export function TodoRow({
   onUpdateText,
   onUpdateNote
 }: TodoRowProps) {
-  const [expanded, setExpanded] = useState(false);
   const [editingTitle, setEditingTitle] = useState(false);
   const [titleText, setTitleText] = useState(item.text);
-  const [noteText, setNoteText] = useState(item.note);
 
   const priorityColor = item.completed ? "rgba(40, 40, 40, 0.18)" : priorityColorFor(index, totalPending);
   const isDragging = dragState?.itemId === item.id;
+  const rowVisual = rowVisualFor(index, item.completed);
 
   useEffect(() => {
     setTitleText(item.text);
   }, [item.text]);
-
-  useEffect(() => {
-    setNoteText(item.note);
-  }, [item.note]);
 
   return (
     <article
@@ -64,26 +59,6 @@ export function TodoRow({
       onDragEnd={() => onDragStateChange(null)}
     >
       <div className="todo-main">
-        {!item.completed ? (
-          <GripHorizontal className="drag-handle" size={14} strokeWidth={1.8} aria-hidden="true" />
-        ) : (
-          <span className="drag-spacer" />
-        )}
-
-        <button
-          className="icon-button chevron-button"
-          type="button"
-          title={expanded ? "收起备注" : "展开备注"}
-          aria-label={expanded ? "收起备注" : "展开备注"}
-          data-expanded={expanded}
-          onClick={(event) => {
-            event.stopPropagation();
-            setExpanded((current) => !current);
-          }}
-        >
-          <ChevronRight size={14} strokeWidth={2} />
-        </button>
-
         <button
           className="check-button"
           type="button"
@@ -127,6 +102,9 @@ export function TodoRow({
           </button>
         )}
 
+        <span className="todo-badge">{rowVisual.badge}</span>
+        <Star className="todo-star" data-starred={rowVisual.starred} size={18} strokeWidth={2.2} fill={rowVisual.starred ? "currentColor" : "none"} />
+
         <button
           className="icon-button delete-button"
           type="button"
@@ -137,19 +115,6 @@ export function TodoRow({
           <X size={14} strokeWidth={2} />
         </button>
       </div>
-
-      {expanded && (
-        <div className="note-wrap">
-          <textarea
-            className="note-input"
-            value={noteText}
-            rows={3}
-            placeholder="添加备注…"
-            onChange={(event) => setNoteText(event.target.value)}
-            onBlur={() => onUpdateNote(item.id, noteText)}
-          />
-        </div>
-      )}
     </article>
   );
 }
@@ -159,4 +124,12 @@ function priorityColorFor(index: number, total: number) {
   const fraction = index / Math.max(total - 1, 1);
   const hue = fraction * 145;
   return `hsl(${hue} 74% 56%)`;
+}
+
+function rowVisualFor(index: number, completed: boolean) {
+  const badges = ["工作", "工作", "习惯", "生活", "学习"];
+  return {
+    badge: badges[index % badges.length],
+    starred: completed || index === 2 || index === 3
+  };
 }

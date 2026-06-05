@@ -117,8 +117,8 @@ class TodoStore: ObservableObject {
         save()
     }
 
-    func addPage() {
-        let page = TodoPage(title: "便贴 \(pages.count + 1)")
+    func addPage(title: String? = nil) {
+        let page = TodoPage(title: title ?? "便贴 \(pages.count + 1)")
         pages.append(page)
         activePageId = page.id
         save()

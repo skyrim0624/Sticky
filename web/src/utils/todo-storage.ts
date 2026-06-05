@@ -76,10 +76,10 @@ export function clearPrototypeStorage() {
   window.localStorage.removeItem(LEGACY_TITLE_KEY);
 }
 
-export function createPage(index: number): TodoPage {
+export function createPage(index: number, title?: string): TodoPage {
   return {
     id: crypto.randomUUID(),
-    title: `便贴 ${index}`,
+    title: title ?? `便贴 ${index}`,
     todos: [],
     createdAt: new Date().toISOString()
   };
