@@ -120,7 +120,7 @@ struct ContentView: View {
             .frame(width: 316, height: 330)
             .background(
                 RoundedRectangle(cornerRadius: 22, style: .continuous)
-                    .fill(Color.white.opacity(0.82))
+                    .fill(Color.white.opacity(0.96))
                     .shadow(color: .white.opacity(0.55), radius: 0, x: 0, y: 1)
             )
             .overlay(
@@ -133,11 +133,10 @@ struct ContentView: View {
         .background(
             ZStack {
                 RoundedRectangle(cornerRadius: 30, style: .continuous)
-                    .fill(Color.white.opacity(0.58))
-                    .background(.ultraThinMaterial)
+                    .fill(Color(red: 0.96, green: 0.97, blue: 0.98).opacity(0.92))
 
                 LinearGradient(
-                    colors: [Color.white.opacity(0.72), Color.white.opacity(0.18)],
+                    colors: [Color.white.opacity(0.96), Color.white.opacity(0.78)],
                     startPoint: .topLeading,
                     endPoint: .bottomTrailing
                 )

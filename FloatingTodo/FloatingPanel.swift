@@ -18,7 +18,7 @@ class FloatingPanel: NSPanel {
         level = .screenSaver - 1  // 比 statusBar+1 更高，在全屏 app 之上也能接收事件
         isOpaque = false
         backgroundColor = .clear
-        hasShadow = true
+        hasShadow = false
         titleVisibility = .hidden
         titlebarAppearsTransparent = true
 

@@ -9,6 +9,14 @@
 
 final result: passed
 
+## 2026-06-05 真实原生截图校准
+
+- 已检查: 真实 `/Applications/FloatingTodo.app` 截图中背景网页不再穿透到纸面，窗口硬黑边已去掉。
+- 已检查: 右侧纸签为「待办 / 灵感 / +」，和参考图结构一致。
+- 已验证: 当前运行进程来自 `/Applications/FloatingTodo.app/Contents/MacOS/FloatingTodo`。
+
+final result: passed
+
 ## 2026-06-05 参考图 1:1 复刻返工
 
 - 已检查: 桌面截图中外层玻璃窗、内层纸面、三张右侧纸签、五行任务、分类胶囊、星标和输入胶囊均按参考图结构落位。
