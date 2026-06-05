@@ -73,18 +73,18 @@ struct ContentView: View {
             outerWindow
 
             bookmarkEdge
-                .offset(x: 500, y: 112)
+                .offset(x: 430, y: 96)
 
             if showsCompletionConfetti && !reduceMotion {
                 CompletionConfettiView(seed: confettiBurst)
-                    .frame(width: 470, height: 320)
-                    .offset(x: 32, y: 84)
+                    .frame(width: 404, height: 276)
+                    .offset(x: 28, y: 72)
                     .allowsHitTesting(false)
                     .transition(.opacity)
                     .id(confettiBurst)
             }
         }
-        .frame(width: 650, height: 560, alignment: .topLeading)
+        .frame(width: 560, height: 486, alignment: .topLeading)
         .environment(\.colorScheme, .light)
         .onChange(of: store.activePageId) {
             newTodoText = ""
@@ -114,7 +114,7 @@ struct ContentView: View {
 
                 inputBar
             }
-            .frame(width: 452, height: 392)
+            .frame(width: 390, height: 338)
             .background(
                 RoundedRectangle(cornerRadius: 26, style: .continuous)
                     .fill(Color.white.opacity(0.82))
@@ -126,7 +126,7 @@ struct ContentView: View {
             )
             .padding(.top, 10)
         }
-        .frame(width: 532, height: 520, alignment: .top)
+        .frame(width: 460, height: 448, alignment: .top)
         .background(
             ZStack {
                 RoundedRectangle(cornerRadius: 34, style: .continuous)
@@ -150,8 +150,8 @@ struct ContentView: View {
         .overlay(alignment: .trailing) {
             Rectangle()
                 .fill(Theme.tabSpine)
-                .frame(width: 8, height: 250)
-                .offset(x: 5, y: 33)
+                .frame(width: 7, height: 214)
+                .offset(x: 5, y: 28)
         }
     }
 
@@ -169,21 +169,21 @@ struct ContentView: View {
                 .foregroundStyle(Theme.textSecondary)
 
             Image(systemName: "ellipsis")
-                .font(.system(size: 16, weight: .bold))
+                .font(.system(size: 14, weight: .bold))
                 .foregroundStyle(Theme.textSecondary)
-                .frame(width: 36, height: 36)
+                .frame(width: 32, height: 32)
                 .background(Circle().fill(Color.white.opacity(0.58)))
                 .overlay(Circle().stroke(Color.primary.opacity(0.08), lineWidth: 0.8))
         }
-        .padding(.horizontal, 34)
-        .padding(.top, 22)
-        .frame(height: 78)
+        .padding(.horizontal, 29)
+        .padding(.top, 18)
+        .frame(height: 68)
     }
 
     private func trafficDot(_ color: Color) -> some View {
         Circle()
             .fill(color)
-            .frame(width: 17, height: 17)
+            .frame(width: 15, height: 15)
             .overlay(Circle().stroke(Color.primary.opacity(0.12), lineWidth: 0.8))
             .shadow(color: color.opacity(0.28), radius: 4, x: 0, y: 2)
     }
@@ -191,7 +191,7 @@ struct ContentView: View {
     // MARK: - Bookmark Sidebar
 
     private var bookmarkEdge: some View {
-        VStack(spacing: 14) {
+        VStack(spacing: 12) {
             ForEach(store.pages) { page in
                 BookmarkButton(
                     page: page,
@@ -210,13 +210,13 @@ struct ContentView: View {
                 }
             } label: {
                 Image(systemName: "plus")
-                    .font(.system(size: 28, weight: .medium))
-                    .frame(width: 114, height: 62)
+                    .font(.system(size: 24, weight: .medium))
+                    .frame(width: 98, height: 54)
             }
             .buttonStyle(.plain)
             .foregroundStyle(Theme.tabText)
             .background(
-                EdgeTabShape(chamfer: 14)
+                EdgeTabShape(chamfer: 12)
                     .fill(
                         LinearGradient(
                             colors: [Theme.tabAddTop, Theme.tabAddBottom],
@@ -227,25 +227,25 @@ struct ContentView: View {
                     .shadow(color: .black.opacity(0.18), radius: 16, x: 5, y: 8)
             )
             .overlay(
-                EdgeTabShape(chamfer: 14)
+                EdgeTabShape(chamfer: 12)
                     .strokeBorder(Theme.tabBorder.opacity(0.46), lineWidth: 1.1)
             )
             .overlay(
-                EdgeTabShape(chamfer: 14)
+                EdgeTabShape(chamfer: 12)
                     .strokeBorder(Color.white.opacity(0.45), lineWidth: 0.8)
                     .padding(3)
             )
             .overlay(alignment: .leading) {
                 Rectangle()
                     .fill(Theme.tabBorder.opacity(0.2))
-                    .frame(width: 7)
+                    .frame(width: 6)
                     .padding(.vertical, 5)
             }
             .help("新建便贴")
 
             Spacer(minLength: 0)
         }
-        .frame(width: 126, alignment: .leading)
+        .frame(width: 108, alignment: .leading)
     }
 
     // MARK: - Header
@@ -260,21 +260,21 @@ struct ContentView: View {
                         set: { store.updateActivePageTitle($0) }
                     )
                 )
-                    .font(.system(size: 30, weight: .bold, design: .rounded))
+                    .font(.system(size: 26, weight: .bold, design: .rounded))
                     .foregroundStyle(Theme.text)
                     .textFieldStyle(.plain)
-                    .frame(height: 36)
+                    .frame(height: 31)
 
                 Text("专注当下，一件件完成。")
-                    .font(.system(size: 15, weight: .regular, design: .default))
+                    .font(.system(size: 13, weight: .regular, design: .default))
                     .foregroundStyle(Theme.textSecondary)
             }
 
             Spacer()
         }
-        .padding(.horizontal, 30)
-        .padding(.top, 24)
-        .padding(.bottom, 12)
+        .padding(.horizontal, 26)
+        .padding(.top, 20)
+        .padding(.bottom, 10)
     }
 
     private var progressRing: some View {
@@ -314,7 +314,7 @@ struct ContentView: View {
                 .font(.system(size: 13, weight: .medium, design: .rounded))
                 .foregroundStyle(Theme.textTertiary)
         }
-        .frame(maxWidth: .infinity, minHeight: 168)
+        .frame(maxWidth: .infinity, minHeight: 138)
         .padding(.vertical, 16)
     }
 
@@ -347,10 +347,10 @@ struct ContentView: View {
                     completedRow(item: item)
                 }
             }
-            .padding(.horizontal, 26)
-            .padding(.vertical, 14)
+            .padding(.horizontal, 22)
+            .padding(.vertical, 12)
         }
-        .frame(maxHeight: 226)
+        .frame(maxHeight: 184)
     }
 
     /// 待办行：带拖拽手柄和优先级颜色
@@ -448,14 +448,14 @@ struct ContentView: View {
                         .font(.system(size: 22, weight: .regular))
                         .foregroundStyle(Theme.accent)
                 }
-                .frame(width: 45, height: 45)
+                .frame(width: 40, height: 40)
             }
             .buttonStyle(.plain)
             .help("添加待办")
 
             TextField("添加新待办…", text: $newTodoText)
                 .textFieldStyle(.plain)
-                .font(.system(size: 16, weight: .regular, design: .rounded))
+                .font(.system(size: 14, weight: .regular, design: .rounded))
                 .foregroundStyle(Theme.textSecondary)
                 .focused($inputFocused)
                 .onSubmit {
@@ -463,18 +463,18 @@ struct ContentView: View {
                 }
 
             Image(systemName: "return")
-                .font(.system(size: 16, weight: .medium))
+                .font(.system(size: 14, weight: .medium))
                 .foregroundStyle(Theme.textSecondary.opacity(0.62))
                 .padding(.trailing, 12)
         }
-        .frame(height: 54)
+        .frame(height: 48)
         .background(
             Capsule()
                 .fill(Color.white.opacity(0.66))
                 .overlay(Capsule().strokeBorder(Color.primary.opacity(0.08), lineWidth: 0.8))
         )
-        .padding(.horizontal, 24)
-        .padding(.bottom, 20)
+        .padding(.horizontal, 21)
+        .padding(.bottom, 16)
         .overlay(
             Rectangle()
                 .fill(Theme.divider)
@@ -546,35 +546,35 @@ private struct BookmarkButton: View {
         Button(action: action) {
             HStack(spacing: 0) {
                 Text(shortTitle)
-                    .font(.system(size: isActive ? 21 : 20, weight: .bold, design: .rounded))
+                    .font(.system(size: isActive ? 18 : 17, weight: .bold, design: .rounded))
                     .lineLimit(1)
                     .minimumScaleFactor(0.78)
-                    .padding(.leading, 34)
-                    .padding(.trailing, 20)
+                    .padding(.leading, 29)
+                    .padding(.trailing, 17)
             }
-            .frame(width: isActive ? 122 : 112, height: isActive ? 68 : 62, alignment: .leading)
-            .contentShape(EdgeTabShape(chamfer: 14))
+            .frame(width: isActive ? 104 : 96, height: isActive ? 58 : 54, alignment: .leading)
+            .contentShape(EdgeTabShape(chamfer: 12))
         }
         .buttonStyle(.plain)
         .foregroundStyle(isActive ? Color(red: 0.16, green: 0.10, blue: 0.05) : Theme.tabText.opacity(0.84))
         .background(
-            EdgeTabShape(chamfer: 14)
+            EdgeTabShape(chamfer: 12)
                 .fill(tabGradient)
                 .shadow(color: .black.opacity(isActive ? 0.24 : 0.16), radius: isActive ? 18 : 13, x: 5, y: 8)
         )
         .overlay(
-            EdgeTabShape(chamfer: 14)
+            EdgeTabShape(chamfer: 12)
                 .strokeBorder(Theme.tabBorder.opacity(isActive ? 0.68 : 0.38), lineWidth: isActive ? 1.4 : 1.0)
         )
         .overlay(
-            EdgeTabShape(chamfer: 14)
+            EdgeTabShape(chamfer: 12)
                 .strokeBorder(Color.white.opacity(isActive ? 0.34 : 0.52), lineWidth: 0.8)
                 .padding(3)
         )
         .overlay(alignment: .leading) {
             Rectangle()
                 .fill(Theme.tabBorder.opacity(isActive ? 0.26 : 0.16))
-                .frame(width: 7)
+                .frame(width: 6)
                 .padding(.vertical, 5)
         }
         .help(displayTitle)
@@ -629,31 +629,31 @@ struct TodoRowContent: View {
                         if item.completed {
                             Circle()
                                 .fill(Theme.brand)
-                                .frame(width: 24, height: 24)
+                                .frame(width: 22, height: 22)
                                 .overlay(
                                     Image(systemName: "checkmark")
-                                        .font(.system(size: 12, weight: .bold))
+                                        .font(.system(size: 11, weight: .bold))
                                         .foregroundStyle(Color.white)
                                 )
                                 .transition(.scale(scale: 0.5).combined(with: .opacity))
                         } else {
                             Circle()
                                 .fill(Color.white.opacity(0.38))
-                                .frame(width: 24, height: 24)
+                                .frame(width: 22, height: 22)
                                 .overlay(
                                     Circle()
                                         .stroke(Color.primary.opacity(0.26), lineWidth: 1.2)
-                                        .frame(width: 24, height: 24)
+                                        .frame(width: 22, height: 22)
                                 )
                                 .transition(.scale(scale: 0.5).combined(with: .opacity))
                         }
                     }
-                    .frame(width: 26, height: 26)
+                    .frame(width: 24, height: 24)
 
                     if isEditingTitle && !item.completed {
                         TextField("任务名称", text: $titleText)
                             .textFieldStyle(.plain)
-                            .font(.system(size: 16, weight: .medium, design: .rounded))
+                            .font(.system(size: 15, weight: .medium, design: .rounded))
                             .foregroundStyle(Theme.text)
                             .focused($titleFocused)
                             .onSubmit {
@@ -667,7 +667,7 @@ struct TodoRowContent: View {
                             }
                     } else {
                         Text(item.text)
-                            .font(.system(size: 16, weight: .medium, design: .rounded))
+                            .font(.system(size: 15, weight: .medium, design: .rounded))
                             .foregroundStyle(item.completed ? Theme.textTertiary : Theme.text)
                             .blur(radius: item.completed ? 0.8 : 0)
                             .scaleEffect(item.completed ? 0.98 : 1.0, anchor: .leading)

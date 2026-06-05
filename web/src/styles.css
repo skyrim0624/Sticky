@@ -43,8 +43,8 @@ button {
 
 .todo-panel {
   position: relative;
-  width: 532px;
-  min-height: 520px;
+  width: 460px;
+  min-height: 448px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -64,11 +64,11 @@ button {
 .todo-panel::after {
   content: "";
   position: absolute;
-  top: 110px;
+  top: 96px;
   right: -5px;
   z-index: 1;
-  width: 8px;
-  height: 250px;
+  width: 7px;
+  height: 214px;
   border-radius: 999px;
   background: rgba(116, 72, 30, 0.24);
   pointer-events: none;
@@ -76,11 +76,11 @@ button {
 
 .window-chrome {
   width: 100%;
-  height: 78px;
+  height: 68px;
   display: flex;
   align-items: center;
   gap: 18px;
-  padding: 22px 34px 0;
+  padding: 18px 29px 0;
 }
 
 .traffic-lights {
@@ -90,8 +90,8 @@ button {
 }
 
 .traffic-dot {
-  width: 17px;
-  height: 17px;
+  width: 15px;
+  height: 15px;
   border-radius: 999px;
   border: 0.8px solid rgba(30, 35, 45, 0.14);
   box-shadow: 0 2px 6px rgba(30, 35, 45, 0.13);
@@ -119,15 +119,15 @@ button {
 
 .chrome-progress {
   min-width: 28px;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 560;
   line-height: 1;
   color: rgba(31, 35, 42, 0.52);
 }
 
 .more-button {
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   display: grid;
   place-items: center;
   border-radius: 999px;
@@ -140,14 +140,14 @@ button {
 
 .bookmark-sidebar {
   position: absolute;
-  top: 112px;
-  right: -90px;
+  top: 96px;
+  right: -78px;
   z-index: 2;
-  width: 126px;
+  width: 108px;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 14px;
+  gap: 12px;
   padding: 0;
   background: transparent;
 }
@@ -155,11 +155,11 @@ button {
 .bookmark-tab,
 .bookmark-add {
   position: relative;
-  width: 112px;
-  height: 62px;
+  width: 96px;
+  height: 54px;
   display: grid;
   place-items: center;
-  clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%);
+  clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%);
   border: 1px solid rgba(122, 73, 28, 0.42);
   border-radius: 0;
   background:
@@ -188,16 +188,16 @@ button {
   left: 0;
   top: 5px;
   bottom: 5px;
-  width: 7px;
+  width: 6px;
   background: rgba(122, 73, 28, 0.18);
   pointer-events: none;
 }
 
 .bookmark-tab span {
   width: 100%;
-  padding-left: 34px;
-  padding-right: 18px;
-  font-size: 20px;
+  padding-left: 29px;
+  padding-right: 16px;
+  font-size: 17px;
   font-weight: 740;
   line-height: 1.05;
   letter-spacing: 0;
@@ -207,8 +207,8 @@ button {
 }
 
 .bookmark-tab[data-active="true"] {
-  width: 122px;
-  height: 68px;
+  width: 104px;
+  height: 58px;
   border-color: rgba(98, 55, 20, 0.68);
   background:
     repeating-linear-gradient(155deg, rgba(89, 49, 16, 0.07) 0 1px, transparent 1px 8px),
@@ -243,8 +243,8 @@ button {
 }
 
 .bookmark-add {
-  width: 114px;
-  height: 62px;
+  width: 98px;
+  height: 54px;
   color: #5d3716;
   background:
     repeating-linear-gradient(155deg, rgba(122, 73, 28, 0.05) 0 1px, transparent 1px 8px),
@@ -253,8 +253,8 @@ button {
 }
 
 .todo-content {
-  width: 452px;
-  height: 392px;
+  width: 390px;
+  height: 338px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -267,11 +267,11 @@ button {
 }
 
 .panel-header {
-  min-height: 116px;
+  min-height: 98px;
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 28px 30px 14px;
+  padding: 22px 26px 12px;
   border-bottom: 1px solid rgba(30, 35, 45, 0.08);
 }
 
@@ -288,7 +288,7 @@ button {
   outline: 0;
   background: transparent;
   color: #111318;
-  font-size: 30px;
+  font-size: 26px;
   font-weight: 780;
   line-height: 1.1;
   letter-spacing: 0;
@@ -299,9 +299,9 @@ button {
 }
 
 .task-count {
-  margin: 10px 0 0;
+  margin: 8px 0 0;
   color: rgba(35, 39, 46, 0.46);
-  font-size: 15px;
+  font-size: 13px;
   line-height: 1.28;
 }
 
@@ -378,9 +378,9 @@ button {
 .todo-list {
   flex: 1;
   min-height: 0;
-  max-height: 226px;
+  max-height: 184px;
   overflow-y: auto;
-  padding: 14px 26px 10px;
+  padding: 12px 22px 9px;
   scrollbar-width: thin;
 }
 
@@ -404,10 +404,10 @@ button {
 }
 
 .todo-main {
-  min-height: 44px;
+  min-height: 40px;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 9px;
   padding: 7px 4px;
 }
 
@@ -449,9 +449,9 @@ button {
 
 .check-button {
   --priority-color: hsl(0 74% 58%);
-  width: 26px;
-  height: 26px;
-  flex: 0 0 26px;
+  width: 24px;
+  height: 24px;
+  flex: 0 0 24px;
   display: grid;
   place-items: center;
   border-radius: 999px;
@@ -459,8 +459,8 @@ button {
 }
 
 .check-dot {
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
   display: block;
   border: 1.2px solid rgba(30, 35, 45, 0.27);
   border-radius: 999px;
@@ -481,7 +481,7 @@ button {
   width: 6px;
   height: 3px;
   display: block;
-  margin: 8px auto 0;
+  margin: 7px auto 0;
   border-left: 2px solid #ffffff;
   border-bottom: 2px solid #ffffff;
   transform: rotate(-45deg);
@@ -494,7 +494,7 @@ button {
   border-radius: 5px;
   background: transparent;
   color: #172033;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 620;
   line-height: 1.35;
   letter-spacing: 0;
@@ -522,7 +522,7 @@ button {
   outline: 0;
   background: rgba(37, 99, 235, 0.08);
   color: #111827;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 620;
 }
 
@@ -584,7 +584,7 @@ button {
 }
 
 .empty-state {
-  min-height: 170px;
+  min-height: 138px;
   display: grid;
   place-items: center;
   align-content: center;
@@ -603,11 +603,11 @@ button {
 }
 
 .input-bar {
-  min-height: 54px;
+  min-height: 48px;
   display: flex;
   align-items: center;
   gap: 10px;
-  margin: 0 24px 20px;
+  margin: 0 21px 16px;
   padding: 4px 12px 4px 6px;
   border: 1px solid rgba(31, 41, 55, 0.08);
   border-radius: 999px;
@@ -615,11 +615,11 @@ button {
 }
 
 .add-icon {
-  width: 45px;
-  height: 45px;
+  width: 40px;
+  height: 40px;
   display: grid;
   place-items: center;
-  flex: 0 0 45px;
+  flex: 0 0 40px;
   border-radius: 999px;
   color: rgba(31, 35, 42, 0.58);
   background: rgba(255, 255, 255, 0.72);
@@ -643,7 +643,7 @@ button {
   outline: 0;
   background: transparent;
   color: #172033;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 620;
 }
 
@@ -658,7 +658,7 @@ button {
   }
 
   .todo-panel {
-    transform: scale(0.6);
+    transform: scale(0.68);
     transform-origin: top center;
   }
 }
