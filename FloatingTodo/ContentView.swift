@@ -23,6 +23,12 @@ private enum Theme {
     static let noteText = Color.primary.opacity(0.55)
     static let noteBg = Color.primary.opacity(0.025)
     static let noteBorder = Color.primary.opacity(0.06)
+    static let tabActive = Color(red: 0.78, green: 0.45, blue: 0.16)
+    static let tabInactive = Color(red: 0.96, green: 0.78, blue: 0.42)
+    static let tabAdd = Color(red: 0.98, green: 0.86, blue: 0.58)
+    static let tabText = Color(red: 0.36, green: 0.22, blue: 0.10)
+    static let tabBorder = Color(red: 0.48, green: 0.30, blue: 0.13)
+    static let tabSpine = Color(red: 0.56, green: 0.36, blue: 0.17).opacity(0.2)
     static let confettiColors: [Color] = [
         Color(red: 0.98, green: 0.24, blue: 0.31),
         Color(red: 1.00, green: 0.70, blue: 0.16),
@@ -92,9 +98,15 @@ struct ContentView: View {
                 RoundedRectangle(cornerRadius: Theme.cornerRadius, style: .continuous)
                     .strokeBorder(Color.white.opacity(0.5), lineWidth: 0.5)
             )
+            .overlay(alignment: .trailing) {
+                RoundedRectangle(cornerRadius: 2, style: .continuous)
+                    .fill(Theme.tabSpine)
+                    .frame(width: 3)
+                    .padding(.vertical, 20)
+            }
 
             bookmarkEdge
-                .offset(x: 306, y: 82)
+                .offset(x: 304, y: 66)
 
             if showsCompletionConfetti && !reduceMotion {
                 CompletionConfettiView(seed: confettiBurst)
@@ -104,7 +116,7 @@ struct ContentView: View {
                     .id(confettiBurst)
             }
         }
-        .frame(width: 356, alignment: .leading)
+        .frame(width: 376, alignment: .leading)
         .environment(\.colorScheme, .light)
         .onChange(of: store.activePageId) {
             newTodoText = ""
@@ -135,37 +147,37 @@ struct ContentView: View {
                 }
             } label: {
                 Image(systemName: "plus")
-                    .font(.system(size: 12, weight: .semibold))
-                    .frame(width: 38, height: 32)
+                    .font(.system(size: 14, weight: .bold))
+                    .frame(width: 50, height: 40)
             }
             .buttonStyle(.plain)
-            .foregroundStyle(Theme.textSecondary.opacity(0.8))
+            .foregroundStyle(Theme.tabText)
             .background(
                 UnevenRoundedRectangle(
-                    topLeadingRadius: 4,
-                    bottomLeadingRadius: 4,
-                    bottomTrailingRadius: 9,
-                    topTrailingRadius: 9,
+                    topLeadingRadius: 3,
+                    bottomLeadingRadius: 3,
+                    bottomTrailingRadius: 13,
+                    topTrailingRadius: 13,
                     style: .continuous
                 )
-                    .fill(Color.white.opacity(0.58))
-                    .shadow(color: .black.opacity(0.06), radius: 7, x: 2, y: 3)
+                    .fill(Theme.tabAdd)
+                    .shadow(color: .black.opacity(0.14), radius: 9, x: 3, y: 4)
             )
             .overlay(
                 UnevenRoundedRectangle(
-                    topLeadingRadius: 4,
-                    bottomLeadingRadius: 4,
-                    bottomTrailingRadius: 9,
-                    topTrailingRadius: 9,
+                    topLeadingRadius: 3,
+                    bottomLeadingRadius: 3,
+                    bottomTrailingRadius: 13,
+                    topTrailingRadius: 13,
                     style: .continuous
                 )
-                    .strokeBorder(Color.primary.opacity(0.07), lineWidth: 0.5)
+                    .strokeBorder(Theme.tabBorder.opacity(0.45), lineWidth: 1)
             )
             .help("新建便贴")
 
             Spacer(minLength: 0)
         }
-        .frame(width: 46, alignment: .leading)
+        .frame(width: 64, alignment: .leading)
     }
 
     // MARK: - Header
@@ -438,45 +450,45 @@ private struct BookmarkButton: View {
         Button(action: action) {
             HStack(spacing: 0) {
                 Text(shortTitle)
-                    .font(.system(size: 9, weight: .bold, design: .rounded))
+                    .font(.system(size: 10, weight: .heavy, design: .rounded))
                     .lineLimit(1)
                     .minimumScaleFactor(0.72)
-                    .padding(.leading, 9)
-                    .padding(.trailing, 6)
+                    .padding(.leading, 11)
+                    .padding(.trailing, 8)
             }
-            .frame(width: isActive ? 46 : 38, height: 34, alignment: .leading)
+            .frame(width: isActive ? 58 : 50, height: isActive ? 46 : 42, alignment: .leading)
             .contentShape(
                 UnevenRoundedRectangle(
-                    topLeadingRadius: 4,
-                    bottomLeadingRadius: 4,
-                    bottomTrailingRadius: 10,
-                    topTrailingRadius: 10,
+                    topLeadingRadius: 3,
+                    bottomLeadingRadius: 3,
+                    bottomTrailingRadius: 14,
+                    topTrailingRadius: 14,
                     style: .continuous
                 )
             )
         }
         .buttonStyle(.plain)
-        .foregroundStyle(isActive ? Theme.brand : Theme.textSecondary.opacity(0.8))
+        .foregroundStyle(isActive ? Color.white : Theme.tabText)
         .background(
             UnevenRoundedRectangle(
-                topLeadingRadius: 4,
-                bottomLeadingRadius: 4,
-                bottomTrailingRadius: 10,
-                topTrailingRadius: 10,
+                topLeadingRadius: 3,
+                bottomLeadingRadius: 3,
+                bottomTrailingRadius: 14,
+                topTrailingRadius: 14,
                 style: .continuous
             )
-                .fill(isActive ? Theme.brand.opacity(0.12) : Color.white.opacity(0.58))
-                .shadow(color: .black.opacity(isActive ? 0.1 : 0.055), radius: isActive ? 9 : 6, x: 2, y: 3)
+                .fill(isActive ? Theme.tabActive : Theme.tabInactive)
+                .shadow(color: .black.opacity(isActive ? 0.22 : 0.14), radius: isActive ? 12 : 8, x: 3, y: 4)
         )
         .overlay(
             UnevenRoundedRectangle(
-                topLeadingRadius: 4,
-                bottomLeadingRadius: 4,
-                bottomTrailingRadius: 10,
-                topTrailingRadius: 10,
+                topLeadingRadius: 3,
+                bottomLeadingRadius: 3,
+                bottomTrailingRadius: 14,
+                topTrailingRadius: 14,
                 style: .continuous
             )
-                .strokeBorder(isActive ? Theme.brand.opacity(0.16) : Color.primary.opacity(0.07), lineWidth: 0.5)
+                .strokeBorder(Theme.tabBorder.opacity(isActive ? 0.72 : 0.46), lineWidth: 1)
         )
         .help(displayTitle)
         .zIndex(isActive ? 1 : 0)
