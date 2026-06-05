@@ -50,7 +50,6 @@ struct ContentView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var newTodoText = ""
     @FocusState private var inputFocused: Bool
-    @AppStorage("listTitle") private var listTitle = "待办事项"
     // 拖拽状态（放在父级，跨 child rebuild 保持稳定）
     @State private var draggingId: UUID? = nil
     @State private var dragAccumulated: CGFloat = 0
@@ -61,18 +60,23 @@ struct ContentView: View {
     private var completed: [TodoItem] { store.todos.filter { $0.completed } }
 
     var body: some View {
-        VStack(spacing: 0) {
-            headerView
+        HStack(spacing: 0) {
+            bookmarkSidebar
 
-            if store.todos.isEmpty {
-                emptyState
-            } else {
-                todoList
+            VStack(spacing: 0) {
+                headerView
+
+                if store.todos.isEmpty {
+                    emptyState
+                } else {
+                    todoList
+                }
+
+                inputBar
             }
-
-            inputBar
+            .frame(width: 320)
         }
-        .frame(width: 320)
+        .frame(width: 372)
         .background(
             ZStack {
                 RoundedRectangle(cornerRadius: Theme.cornerRadius, style: .continuous)
@@ -97,11 +101,63 @@ struct ContentView: View {
             if showsCompletionConfetti && !reduceMotion {
                 CompletionConfettiView(seed: confettiBurst)
                     .frame(width: 320, height: 260)
+                    .padding(.leading, 52)
                     .allowsHitTesting(false)
                     .transition(.opacity)
                     .id(confettiBurst)
             }
         }
+        .onChange(of: store.activePageId) {
+            newTodoText = ""
+            draggingId = nil
+            dragAccumulated = 0
+        }
+    }
+
+    // MARK: - Bookmark Sidebar
+
+    private var bookmarkSidebar: some View {
+        VStack(spacing: 7) {
+            ForEach(store.pages) { page in
+                BookmarkButton(
+                    page: page,
+                    isActive: page.id == store.activePageId,
+                    action: {
+                        withAnimation(.spring(response: 0.28, dampingFraction: 0.82)) {
+                            store.selectPage(page.id)
+                        }
+                    }
+                )
+            }
+
+            Button {
+                withAnimation(.spring(response: 0.32, dampingFraction: 0.82)) {
+                    store.addPage()
+                }
+            } label: {
+                Image(systemName: "plus")
+                    .font(.system(size: 12, weight: .semibold))
+                    .frame(width: 34, height: 34)
+            }
+            .buttonStyle(.plain)
+            .foregroundStyle(Theme.textSecondary)
+            .background(
+                RoundedRectangle(cornerRadius: 9, style: .continuous)
+                    .fill(Theme.accentSoft)
+            )
+            .help("新建便贴")
+
+            Spacer(minLength: 0)
+        }
+        .frame(width: 52)
+        .padding(.vertical, 12)
+        .background(Color.white.opacity(0.18))
+        .overlay(
+            Rectangle()
+                .fill(Theme.divider)
+                .frame(width: 0.5),
+            alignment: .trailing
+        )
     }
 
     // MARK: - Header
@@ -109,7 +165,13 @@ struct ContentView: View {
     private var headerView: some View {
         HStack(alignment: .center, spacing: 12) {
             VStack(alignment: .leading, spacing: 3) {
-                TextField("这里可以写标题...", text: $listTitle)
+                TextField(
+                    "这里可以写标题...",
+                    text: Binding(
+                        get: { store.activePageTitle },
+                        set: { store.updateActivePageTitle($0) }
+                    )
+                )
                     .font(.system(size: 22, weight: .bold, design: .rounded))
                     .foregroundStyle(Theme.text)
                     .textFieldStyle(.plain)
@@ -305,16 +367,20 @@ struct ContentView: View {
 
     private var inputBar: some View {
         HStack(spacing: 10) {
-            ZStack {
-                RoundedRectangle(cornerRadius: 6, style: .continuous)
-                    .fill(inputFocused ? Theme.accent.opacity(0.12) : Theme.accentSoft)
-                    .animation(.easeOut(duration: 0.2), value: inputFocused)
+            Button(action: submitNewTodo) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 6, style: .continuous)
+                        .fill(inputFocused ? Theme.accent.opacity(0.12) : Theme.accentSoft)
+                        .animation(.easeOut(duration: 0.2), value: inputFocused)
 
-                Image(systemName: "plus")
-                    .font(.system(size: 11, weight: .bold))
-                    .foregroundStyle(Theme.accent)
+                    Image(systemName: "plus")
+                        .font(.system(size: 11, weight: .bold))
+                        .foregroundStyle(Theme.accent)
+                }
+                .frame(width: 22, height: 22)
             }
-            .frame(width: 22, height: 22)
+            .buttonStyle(.plain)
+            .help("添加待办")
 
             TextField("添加新待办…", text: $newTodoText)
                 .textFieldStyle(.plain)
@@ -322,12 +388,7 @@ struct ContentView: View {
                 .foregroundStyle(Theme.text)
                 .focused($inputFocused)
                 .onSubmit {
-                    let trimmed = newTodoText.trimmingCharacters(in: .whitespaces)
-                    guard !trimmed.isEmpty else { return }
-                    withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
-                        store.add(trimmed)
-                    }
-                    newTodoText = ""
+                    submitNewTodo()
                 }
         }
         .padding(.horizontal, 14)
@@ -339,6 +400,52 @@ struct ContentView: View {
                 .frame(height: 0.5),
             alignment: .top
         )
+    }
+
+    private func submitNewTodo() {
+        let trimmed = newTodoText.trimmingCharacters(in: .whitespaces)
+        guard !trimmed.isEmpty else { return }
+        withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+            store.add(trimmed)
+        }
+        newTodoText = ""
+    }
+}
+
+private struct BookmarkButton: View {
+    let page: TodoPage
+    let isActive: Bool
+    let action: () -> Void
+
+    private var displayTitle: String {
+        let trimmed = page.title.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? "未命名" : trimmed
+    }
+
+    private var shortTitle: String {
+        String(displayTitle.prefix(2))
+    }
+
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 3) {
+                Image(systemName: isActive ? "bookmark.fill" : "bookmark")
+                    .font(.system(size: 12, weight: .semibold))
+                Text(shortTitle)
+                    .font(.system(size: 9, weight: .semibold, design: .rounded))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.72)
+            }
+            .frame(width: 38, height: 42)
+            .contentShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+        }
+        .buttonStyle(.plain)
+        .foregroundStyle(isActive ? Theme.brand : Theme.textSecondary)
+        .background(
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .fill(isActive ? Theme.brand.opacity(0.11) : Color.clear)
+        )
+        .help(displayTitle)
     }
 }
 
