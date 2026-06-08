@@ -1,7 +1,6 @@
-import { Check, Clipboard, Download, MoreHorizontal, Plus, RotateCcw } from "lucide-react";
 import confetti from "canvas-confetti";
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { CSSProperties, MouseEvent } from "react";
+import type { MouseEvent } from "react";
 import { TodoRow } from "./components/TodoRow";
 import { useReducedMotion } from "./hooks/use-reduced-motion";
 import type { DragState, TodoItem, TodoPage } from "./types";
@@ -34,7 +33,17 @@ export function App() {
   const todos = activePage?.todos ?? [];
   const listTitle = activePage?.title ?? "待办事项";
   const completed = useMemo(() => todos.filter((todo) => todo.completed), [todos]);
-  const progress = todos.length ? completed.length / todos.length : 0;
+  const browserDate = useMemo(
+    () =>
+      new Intl.DateTimeFormat("en-US", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric"
+      })
+        .format(new Date())
+        .toUpperCase(),
+    []
+  );
 
   useEffect(() => {
     saveWorkspace(workspace);
@@ -211,21 +220,11 @@ export function App() {
             <span className="traffic-dot traffic-yellow" />
             <span className="traffic-dot traffic-green" />
           </div>
-
-          <div className="chrome-actions">
-            <div className="progress-ring" style={{ "--progress": progress } as CSSProperties}>
-              <Check size={11} strokeWidth={3} />
-            </div>
-            <span className="chrome-progress">
-              {completed.length}/{Math.max(todos.length, 1)}
-            </span>
-            <button className="more-button" type="button" title="更多" aria-label="更多">
-              <MoreHorizontal size={18} strokeWidth={3} />
-            </button>
-          </div>
+          <span className="browser-date">{browserDate}</span>
         </div>
 
         <nav className="bookmark-sidebar" aria-label="便贴书签">
+          <span className="bookmark-label">BOOKMARKS</span>
           {pages.map((page) => {
             const pageTitle = displayPageTitle(page);
             const isActive = page.id === activePageId;
@@ -240,7 +239,7 @@ export function App() {
                 data-active={isActive}
                 onClick={() => selectPage(page.id)}
               >
-                <span>{shortBookmarkTitle(pageTitle)}</span>
+                <span>{pageTitle}</span>
               </button>
             );
           })}
@@ -257,7 +256,7 @@ export function App() {
             </button>
           )}
           <button className="bookmark-add" type="button" title="新建便贴" aria-label="新建便贴" onClick={() => addPage()}>
-            <Plus size={13} strokeWidth={3} />
+            + PAGE
           </button>
         </nav>
 
@@ -273,32 +272,21 @@ export function App() {
                 onChange={(event) => updateActivePage((page) => ({ ...page, title: event.target.value }))}
               />
               <p className="task-count">
-                专注当下，一件件完成。
+                ONE THING. THEN ANOTHER. VERY ADVANCED.
               </p>
             </div>
-
-            <div className="header-actions">
-              <button className="icon-button" type="button" title="复制 Markdown" aria-label="复制 Markdown" onClick={copyMarkdown}>
-                <Clipboard size={15} strokeWidth={2} />
-              </button>
-              <button className="icon-button" type="button" title="下载 Markdown" aria-label="下载 Markdown" onClick={downloadMarkdown}>
-                <Download size={15} strokeWidth={2} />
-              </button>
-              <button className="icon-button" type="button" title="重置测试数据" aria-label="重置测试数据" onClick={resetPrototype}>
-                <RotateCcw size={15} strokeWidth={2} />
-              </button>
-
-              <div className="progress-ring" style={{ "--progress": progress } as CSSProperties}>
-                <Check size={11} strokeWidth={3} />
-              </div>
-            </div>
           </header>
+
+          <div className="todo-list-label">
+            <span>TASKS</span>
+            <span>{completed.length}/{Math.max(todos.length, 1)}</span>
+          </div>
 
           <div className="todo-list">
             {todos.length === 0 ? (
               <div className="empty-state">
-                <span>✨</span>
-                <p>享受当下的空闲时刻</p>
+                <span>NOTHING HERE.</span>
+                <p>THE MACHINE HAS NO OPINION.</p>
               </div>
             ) : (
               <>
@@ -327,11 +315,11 @@ export function App() {
             }}
           >
             <button className="add-icon" type="submit" title="添加待办" aria-label="添加待办">
-              <Plus size={13} strokeWidth={3} />
+              ADD
             </button>
             <input
               value={newTodoText}
-              placeholder="添加新待办…"
+              placeholder="TYPE THE THING."
               aria-label="添加新待办"
               onChange={(event) => setNewTodoText(event.target.value)}
             />
@@ -344,10 +332,6 @@ export function App() {
 
 function updatePageTodos(page: TodoPage, update: (todos: TodoItem[]) => TodoItem[]) {
   return { ...page, todos: update(page.todos) };
-}
-
-function shortBookmarkTitle(title: string) {
-  return Array.from(title).slice(0, 2).join("");
 }
 
 function clamp(value: number, min: number, max: number) {

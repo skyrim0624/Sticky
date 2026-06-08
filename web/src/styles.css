@@ -1,12 +1,18 @@
 :root {
   color-scheme: light;
+  --paper: #e8ddc1;
+  --paper-soft: #f4e9cf;
+  --ink: #11100d;
+  --ink-soft: rgba(17, 16, 13, 0.66);
+  --ink-faint: rgba(17, 16, 13, 0.22);
+  background: var(--paper);
+  color: var(--ink);
   font-family:
-    "Kaiti SC", "STKaiti", "KaiTi", "Marker Felt", "Comic Sans MS", cursive;
-  background: #f1eee6;
-  color: #302d28;
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
+    "Arial Narrow", Impact, Haettenschweiler, "Arial Black", "PingFang SC",
+    "Microsoft YaHei", sans-serif;
+  font-synthesis: weight;
+  text-rendering: geometricPrecision;
+  -webkit-font-smoothing: none;
 }
 
 * {
@@ -17,8 +23,19 @@ body {
   min-width: 320px;
   min-height: 100vh;
   margin: 0;
+  background: #dfd3b7;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
   background:
-    linear-gradient(180deg, #f4f1e9 0%, #ebe6dc 100%);
+    radial-gradient(circle at 16px 22px, rgba(17, 16, 13, 0.10) 0 1px, transparent 1.2px),
+    radial-gradient(circle at 42px 8px, rgba(17, 16, 13, 0.055) 0 1px, transparent 1.2px);
+  background-size: 58px 58px, 71px 71px;
+  opacity: 0.55;
 }
 
 button,
@@ -36,231 +53,207 @@ button {
   min-height: 100vh;
   display: grid;
   place-items: start center;
-  padding: clamp(28px, 8vh, 76px) 18px 32px;
+  padding: clamp(28px, 8vh, 76px) 18px 40px;
 }
 
 .todo-panel {
   position: relative;
-  width: 320px;
-  min-height: 334px;
+  width: 374px;
+  min-height: 580px;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: stretch;
   overflow: visible;
-  border: 1px solid rgba(70, 66, 58, 0.58);
-  border-radius: 5px;
-  background:
-    linear-gradient(142deg, rgba(255, 255, 255, 0.20), rgba(0, 0, 0, 0.025)),
-    #f2eee4;
-  box-shadow:
-    0 14px 28px rgba(30, 27, 21, 0.10);
-  backdrop-filter: none;
+  border: 3px solid var(--ink);
+  border-radius: 0;
+  background: var(--paper-soft);
+  box-shadow: 8px 8px 0 var(--ink);
+  filter: contrast(1.05);
+}
+
+.todo-panel::before {
+  content: "";
+  position: absolute;
+  right: -18px;
+  bottom: 50px;
+  z-index: 4;
+  width: 50px;
+  height: 70px;
+  background: var(--ink);
+  clip-path: polygon(0 0, 0 84%, 31% 65%, 47% 100%, 64% 92%, 49% 59%, 100% 59%);
+  transform: rotate(-7deg);
+  pointer-events: none;
 }
 
 .todo-panel::after {
   content: "";
   position: absolute;
-  top: 44px;
-  right: -2px;
-  z-index: 1;
-  width: 1px;
-  height: 176px;
-  border-radius: 999px;
-  background: rgba(70, 66, 58, 0.26);
+  inset: 0;
+  z-index: 0;
+  background:
+    repeating-linear-gradient(0deg, transparent 0 30px, rgba(17, 16, 13, 0.045) 31px 32px),
+    radial-gradient(circle at 12px 18px, rgba(17, 16, 13, 0.12) 0 1px, transparent 1.2px),
+    radial-gradient(circle at 35px 40px, rgba(17, 16, 13, 0.06) 0 1px, transparent 1.2px);
+  background-size: auto, 43px 43px, 67px 67px;
+  mix-blend-mode: multiply;
+  opacity: 0.62;
   pointer-events: none;
 }
 
+.todo-panel > * {
+  position: relative;
+  z-index: 1;
+}
+
 .window-chrome {
-  display: none;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 12px;
+  border-bottom: 3px solid var(--ink);
+  background: var(--paper);
 }
 
 .traffic-lights {
   display: flex;
   align-items: center;
-  gap: 13px;
+  gap: 6px;
 }
 
 .traffic-dot {
-  width: 14px;
-  height: 14px;
+  width: 13px;
+  height: 13px;
+  border: 2.5px solid var(--ink);
   border-radius: 999px;
-  border: 0.8px solid rgba(30, 35, 45, 0.14);
-  box-shadow: 0 2px 6px rgba(30, 35, 45, 0.13);
+  background: var(--paper-soft);
 }
 
-.traffic-red {
-  background: #ff584a;
-}
-
-.traffic-yellow {
-  background: #ffc03a;
-}
-
+.traffic-red,
+.traffic-yellow,
 .traffic-green {
-  background: #42c94b;
+  background: var(--paper-soft);
 }
 
-.chrome-actions {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+.browser-date {
   margin-left: auto;
-  color: rgba(31, 35, 42, 0.48);
-}
-
-.chrome-progress {
-  min-width: 28px;
-  font-size: 14px;
-  font-weight: 560;
+  color: var(--ink);
+  font-family: "Courier New", monospace;
+  font-size: 11px;
+  font-weight: 900;
   line-height: 1;
-  color: rgba(31, 35, 42, 0.52);
-}
-
-.more-button {
-  width: 30px;
-  height: 30px;
-  display: grid;
-  place-items: center;
-  border-radius: 999px;
-  color: rgba(31, 35, 42, 0.48);
-  background: rgba(255, 255, 255, 0.58);
-  box-shadow:
-    inset 0 0 0 0.8px rgba(25, 28, 34, 0.08),
-    0 2px 7px rgba(30, 35, 45, 0.08);
 }
 
 .bookmark-sidebar {
-  position: absolute;
-  top: 44px;
-  right: -58px;
-  z-index: 2;
-  width: 72px;
+  width: auto;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: 8px;
-  padding: 0;
+  gap: 7px;
+  padding: 18px 18px 0;
   background: transparent;
+}
+
+.bookmark-label,
+.todo-list-label {
+  color: var(--ink-soft);
+  font-family: "Courier New", monospace;
+  font-size: 10px;
+  font-weight: 900;
+  line-height: 1;
 }
 
 .bookmark-tab,
 .bookmark-add {
   position: relative;
-  width: 64px;
-  height: 36px;
-  display: grid;
-  place-items: center;
-  clip-path: polygon(0 0, calc(100% - 7px) 0, 100% 7px, 100% calc(100% - 7px), calc(100% - 7px) 100%, 0 100%);
-  border: 1px solid rgba(70, 66, 58, 0.62);
+  width: 100%;
+  min-height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  padding: 0;
   border-radius: 0;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.20), rgba(0, 0, 0, 0.025)),
-    #eee8d8;
-  color: #302d28;
-  box-shadow:
-    1px 2px 5px rgba(30, 27, 21, 0.06);
-  transition:
-    background-color 160ms ease,
-    box-shadow 160ms ease,
-    color 160ms ease,
-    transform 160ms ease;
+  background: transparent;
+  color: var(--ink);
+  text-align: left;
+  transition: transform 120ms ease;
 }
 
-.bookmark-tab {
-  justify-items: start;
+.bookmark-tab::before {
+  content: "";
+  width: 22px;
+  height: 22px;
+  flex: 0 0 22px;
+  border: 3px solid var(--ink);
+  border-radius: 999px;
+  background: var(--paper-soft);
 }
 
-.bookmark-tab::before,
-.bookmark-add::before {
+.bookmark-tab[data-active="true"]::after {
   content: "";
   position: absolute;
-  left: 0;
-  top: 5px;
-  bottom: 5px;
-  width: 1px;
-  background: rgba(70, 66, 58, 0.35);
-  pointer-events: none;
+  left: 6px;
+  top: 50%;
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--ink);
+  transform: translateY(-50%);
 }
 
 .bookmark-tab span {
-  width: 100%;
-  padding-left: 12px;
-  padding-right: 9px;
-  font-size: 13px;
-  font-weight: 500;
-  line-height: 1.05;
-  letter-spacing: 0;
+  min-width: 0;
+  flex: 1;
   overflow: hidden;
+  color: var(--ink);
+  font-family: "Courier New", monospace;
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1.2;
   text-overflow: ellipsis;
+  text-transform: uppercase;
   white-space: nowrap;
 }
 
-.bookmark-tab[data-active="true"] {
-  width: 68px;
-  height: 38px;
-  border-color: rgba(70, 66, 58, 0.72);
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.22), rgba(0, 0, 0, 0.035)),
-    #e8dfc9;
-  color: #302d28;
-  box-shadow:
-    1px 2px 5px rgba(30, 27, 21, 0.08);
-}
-
-.bookmark-tab:hover,
-.bookmark-add:hover {
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.24), rgba(0, 0, 0, 0.025)),
-    #eee8d8;
-  color: #302d28;
-}
-
-.bookmark-tab[data-active="true"]:hover {
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.22), rgba(0, 0, 0, 0.035)),
-    #e8dfc9;
-  color: #302d28;
+.bookmark-add {
+  min-height: 32px;
+  justify-content: center;
+  margin-top: 2px;
+  border: 3px solid var(--ink);
+  background: var(--ink);
+  box-shadow: 4px 4px 0 var(--ink);
+  color: var(--paper-soft);
+  font-family: "Courier New", monospace;
+  font-size: 12px;
+  font-weight: 900;
+  text-align: center;
 }
 
 .bookmark-tab:active,
-.bookmark-add:active {
-  transform: scale(0.94);
-}
-
-.bookmark-add {
-  width: 64px;
-  height: 36px;
-  color: #302d28;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.20), rgba(0, 0, 0, 0.025)),
-    #eee8d8;
+.bookmark-add:active,
+.add-icon:active {
+  transform: translate(2px, 2px);
 }
 
 .todo-content {
-  width: 292px;
-  height: 318px;
+  width: auto;
+  height: auto;
   display: flex;
+  flex: 1;
   flex-direction: column;
   overflow: hidden;
-  border: 1px solid rgba(70, 66, 58, 0.55);
-  border-radius: 4px;
-  background: #f8f4e9;
-  box-shadow:
-    none;
+  padding: 18px;
+  background: transparent;
 }
 
 .panel-header {
-  min-height: 80px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 14px 19px 8px;
-  border-bottom: 1px solid rgba(70, 66, 58, 0.30);
+  display: block;
+  padding: 0 0 15px;
+  border-bottom: 3px solid var(--ink);
 }
 
 .title-stack {
   min-width: 0;
-  flex: 1;
 }
 
 .list-title-input {
@@ -270,60 +263,37 @@ button {
   border: 0;
   outline: 0;
   background: transparent;
-  color: #111318;
-  font-family: "Kaiti SC", "STKaiti", "KaiTi", "Marker Felt", cursive;
-  font-size: 22px;
-  font-weight: 500;
-  line-height: 1.1;
+  color: var(--ink);
+  font-family: Impact, Haettenschweiler, "Arial Narrow", "Arial Black", "PingFang SC", sans-serif;
+  font-size: 44px;
+  font-stretch: condensed;
+  font-weight: 900;
+  line-height: 0.92;
   letter-spacing: 0;
+  text-transform: uppercase;
+  text-shadow: 0.8px 0.4px 0 rgba(17, 16, 13, 0.18);
 }
 
 .list-title-input:focus-visible {
-  box-shadow: 0 2px 0 rgba(39, 103, 196, 0.28);
+  outline: 3px solid var(--ink);
+  outline-offset: 3px;
 }
 
 .task-count {
-  margin: 8px 0 0;
-  color: rgba(35, 39, 46, 0.46);
-  font-family: "Kaiti SC", "STKaiti", "KaiTi", "Marker Felt", cursive;
-  font-size: 12px;
-  line-height: 1.28;
+  margin: 10px 0 0;
+  color: var(--ink-soft);
+  font-family: "Courier New", monospace;
+  font-size: 10px;
+  font-weight: 900;
+  line-height: 1.2;
 }
 
-.task-count strong {
-  color: #1e293b;
-  font-weight: 680;
-}
-
-.task-count .done-count {
-  color: #2563eb;
-}
-
-.header-actions {
+.header-actions,
+.chrome-actions,
+.progress-ring,
+.more-button,
+.chrome-progress {
   display: none;
-}
-
-.icon-button {
-  width: 26px;
-  height: 26px;
-  display: inline-grid;
-  place-items: center;
-  border-radius: 7px;
-  background: transparent;
-  color: rgba(31, 41, 55, 0.42);
-  transition:
-    background-color 160ms ease,
-    color 160ms ease,
-    transform 160ms ease;
-}
-
-.icon-button:hover {
-  background: rgba(30, 41, 59, 0.06);
-  color: rgba(15, 23, 42, 0.78);
-}
-
-.icon-button:active {
-  transform: scale(0.94);
 }
 
 .icon-button:focus-visible,
@@ -332,55 +302,40 @@ button {
 .add-icon:focus-visible,
 .check-button:focus-visible,
 .todo-title:focus-visible {
-  outline: 2px solid rgba(37, 99, 235, 0.36);
-  outline-offset: 2px;
+  outline: 3px solid var(--ink);
+  outline-offset: 3px;
 }
 
-.progress-ring {
-  --size: 22px;
-  --progress: 0;
-  position: relative;
-  width: var(--size);
-  height: var(--size);
-  display: grid;
-  place-items: center;
-  margin-left: 2px;
-  border-radius: 999px;
-  color: #2563eb;
-  background:
-    radial-gradient(circle at center, rgba(255, 255, 255, 0.94) 0 55%, transparent 56%),
-    conic-gradient(#2563eb calc(var(--progress) * 1turn), rgba(30, 41, 59, 0.08) 0);
-}
-
-.progress-ring svg {
-  opacity: calc(var(--progress) * 1);
-  transform: scale(calc(0.7 + var(--progress) * 0.3));
-  transition:
-    opacity 180ms ease,
-    transform 180ms ease;
+.todo-list-label {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 18px;
+  margin-bottom: 8px;
 }
 
 .todo-list {
   flex: 1;
   min-height: 0;
-  max-height: 178px;
+  height: 123px;
+  max-height: 123px;
   overflow-y: auto;
-  padding: 8px 18px;
+  border-top: 3px solid var(--ink);
   scrollbar-width: thin;
 }
 
 .todo-row {
   position: relative;
-  border-radius: 8px;
-  color: #172033;
+  border-bottom: 1px solid var(--ink-faint);
+  border-radius: 0;
+  color: var(--ink);
   transition:
-    background-color 160ms ease,
-    opacity 160ms ease,
-    transform 160ms ease;
+    background-color 120ms ease,
+    opacity 120ms ease,
+    transform 120ms ease;
 }
 
 .todo-row:hover {
-  background: rgba(15, 23, 42, 0.035);
+  background: rgba(17, 16, 13, 0.06);
 }
 
 .todo-row[data-dragging="true"] {
@@ -389,136 +344,98 @@ button {
 }
 
 .todo-main {
-  min-height: 24px;
+  min-height: 39px;
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 1px 2px;
-}
-
-.drag-handle,
-.drag-spacer {
-  width: 0;
-  height: 20px;
-  flex: 0 0 0;
-  color: rgba(31, 41, 55, 0.18);
-  overflow: hidden;
-}
-
-.todo-row:hover .drag-handle {
-  color: rgba(31, 41, 55, 0.42);
-}
-
-.chevron-button {
-  width: 0;
-  height: 22px;
-  flex: 0 0 0;
-  overflow: hidden;
-  opacity: 0;
-}
-
-.todo-row:hover .chevron-button,
-.chevron-button[data-expanded="true"] {
-  width: 18px;
-  flex-basis: 18px;
-  opacity: 1;
-}
-
-.chevron-button svg {
-  transition: transform 180ms ease;
-}
-
-.chevron-button[data-expanded="true"] svg {
-  transform: rotate(90deg);
+  gap: 11px;
+  padding: 7px 0;
 }
 
 .check-button {
-  width: 18px;
-  height: 18px;
-  flex: 0 0 18px;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 28px;
   display: grid;
   place-items: center;
-  border-radius: 0;
+  border-radius: 999px;
   background: transparent;
 }
 
 .check-dot {
-  width: 13px;
-  height: 13px;
+  width: 24px;
+  height: 24px;
   display: block;
-  border: 1px solid rgba(70, 66, 58, 0.72);
-  border-radius: 1.5px;
-  background: transparent;
-  transition:
-    border-color 180ms ease,
-    background-color 180ms ease,
-    transform 180ms ease;
-}
-
-.todo-row[data-completed="true"] .check-dot {
-  border-color: rgba(70, 66, 58, 0.72);
-  background: transparent;
+  border: 3px solid var(--ink);
+  border-radius: 999px;
+  background: var(--paper-soft);
 }
 
 .todo-row[data-completed="true"] .check-dot::after {
   content: "";
-  width: 8px;
-  height: 4px;
+  width: 10px;
+  height: 10px;
   display: block;
-  margin: 2px auto 0;
-  border-left: 1.5px solid rgba(48, 45, 40, 0.86);
-  border-bottom: 1.5px solid rgba(48, 45, 40, 0.86);
-  transform: rotate(-45deg);
+  margin: 4px auto 0;
+  border: 0;
+  border-radius: 999px;
+  background: var(--ink);
+  transform: none;
 }
 
 .todo-title {
   min-width: 0;
   flex: 1;
   padding: 0;
-  border-radius: 5px;
+  border-radius: 0;
   background: transparent;
-  color: #302d28;
-  font-family: "Kaiti SC", "STKaiti", "KaiTi", "Marker Felt", cursive;
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 1.35;
+  color: var(--ink);
+  font-family: "Courier New", monospace;
+  font-size: 13px;
+  font-weight: 900;
+  line-height: 1.25;
   letter-spacing: 0;
   text-align: left;
   overflow-wrap: anywhere;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  transition:
-    color 180ms ease,
-    opacity 180ms ease,
-    transform 180ms ease;
+  text-shadow: 0.4px 0.3px 0 rgba(17, 16, 13, 0.12);
 }
 
 .todo-row[data-completed="true"] .todo-title {
-  color: rgba(70, 66, 58, 0.42);
+  color: rgba(17, 16, 13, 0.42);
   text-decoration: line-through;
-  text-decoration-thickness: 1.5px;
-  transform: scale(0.985);
+  text-decoration-thickness: 2px;
 }
 
 .title-input {
   min-width: 0;
   flex: 1;
-  padding: 2px 4px;
-  border: 0;
-  border-radius: 5px;
+  height: 30px;
+  padding: 0 6px;
+  border: 2px solid var(--ink);
+  border-radius: 0;
   outline: 0;
-  background: transparent;
-  color: #302d28;
-  font-family: "Kaiti SC", "STKaiti", "KaiTi", "Marker Felt", cursive;
-  font-size: 14px;
-  font-weight: 500;
+  background: var(--paper-soft);
+  color: var(--ink);
+  font-family: "Courier New", monospace;
+  font-size: 13px;
+  font-weight: 900;
 }
 
 .delete-button {
-  width: 16px;
+  width: 24px;
   height: 24px;
-  flex: 0 0 16px;
+  flex: 0 0 24px;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--ink);
+  border-radius: 0;
+  background: var(--paper-soft);
+  color: var(--ink);
+  font-family: "Courier New", monospace;
+  font-size: 11px;
+  font-weight: 900;
   opacity: 0;
 }
 
@@ -527,118 +444,91 @@ button {
   opacity: 1;
 }
 
-.note-wrap {
-  margin: 0 8px 7px 67px;
-  padding-top: 5px;
-  border-top: 1px solid rgba(31, 41, 55, 0.06);
-}
-
-.note-input {
-  width: 100%;
-  min-height: 56px;
-  max-height: 104px;
-  resize: vertical;
-  padding: 8px 9px;
-  border: 1px solid rgba(31, 41, 55, 0.07);
-  border-radius: 7px;
-  outline: 0;
-  background: rgba(255, 255, 255, 0.42);
-  color: rgba(31, 41, 55, 0.62);
-  font-size: 12px;
-  line-height: 1.45;
-}
-
-.note-input:focus {
-  border-color: rgba(37, 99, 235, 0.22);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.08);
-}
-
-.completed-divider {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  padding: 7px 8px;
-}
-
-.completed-divider span {
-  flex: 1;
-  height: 1px;
-  background: rgba(31, 41, 55, 0.08);
-}
-
-.completed-divider p {
-  margin: 0;
-  color: rgba(31, 41, 55, 0.25);
-  font-size: 11px;
-}
-
 .empty-state {
-  min-height: 138px;
+  min-height: 126px;
   display: grid;
-  place-items: center;
   align-content: center;
-  gap: 7px;
-  color: rgba(31, 41, 55, 0.23);
+  gap: 8px;
+  margin-top: 18px;
+  padding: 14px;
+  border: 3px solid var(--ink);
+  color: var(--ink);
 }
 
 .empty-state span {
-  font-size: 31px;
+  font-family: Impact, Haettenschweiler, "Arial Narrow", "Arial Black", sans-serif;
+  font-size: 28px;
+  font-weight: 900;
+  line-height: 1;
 }
 
 .empty-state p {
   margin: 0;
-  font-size: 13px;
-  font-weight: 620;
+  color: var(--ink-soft);
+  font-family: "Courier New", monospace;
+  font-size: 10px;
+  font-weight: 900;
 }
 
 .input-bar {
-  min-height: 38px;
+  min-height: 42px;
   display: flex;
-  align-items: center;
-  gap: 9px;
-  margin: 0 18px 14px;
-  padding: 3px 10px 3px 6px;
-  border: 1px solid rgba(70, 66, 58, 0.32);
-  border-radius: 3px;
+  align-items: stretch;
+  gap: 8px;
+  margin: 18px 0 0;
+  padding: 0;
   background: transparent;
 }
 
 .add-icon {
-  width: 32px;
-  height: 32px;
+  order: 2;
+  width: 72px;
+  height: 42px;
   display: grid;
   place-items: center;
-  flex: 0 0 32px;
+  flex: 0 0 72px;
+  border: 3px solid var(--ink);
   border-radius: 0;
-  color: rgba(48, 45, 40, 0.78);
-  background: transparent;
-  transition:
-    background-color 160ms ease,
-    transform 160ms ease;
-}
-
-.add-icon:hover {
-  background: rgba(37, 99, 235, 0.12);
-}
-
-.add-icon:active {
-  transform: scale(0.94);
+  background: var(--ink);
+  box-shadow: 4px 4px 0 var(--ink);
+  color: var(--paper-soft);
+  font-family: "Courier New", monospace;
+  font-size: 13px;
+  font-weight: 900;
 }
 
 .input-bar input {
+  order: 1;
   min-width: 0;
   flex: 1;
-  border: 0;
+  height: 42px;
+  padding: 0 10px;
+  border: 3px solid var(--ink);
+  border-radius: 0;
   outline: 0;
-  background: transparent;
-  color: #302d28;
-  font-family: "Kaiti SC", "STKaiti", "KaiTi", "Marker Felt", cursive;
-  font-size: 15px;
-  font-weight: 500;
+  background: var(--paper-soft);
+  color: var(--ink);
+  font-family: "Courier New", monospace;
+  font-size: 13px;
+  font-weight: 900;
 }
 
 .input-bar input::placeholder {
-  color: rgba(31, 41, 55, 0.36);
+  color: rgba(17, 16, 13, 0.42);
+}
+
+.input-bar input:focus-visible {
+  outline: 3px solid var(--ink);
+  outline-offset: 3px;
+}
+
+.note-wrap,
+.note-input,
+.completed-divider,
+.drag-handle,
+.drag-spacer,
+.chevron-button {
+  display: none;
 }
 
 @media (max-width: 720px) {

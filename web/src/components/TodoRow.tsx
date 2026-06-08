@@ -1,4 +1,3 @@
-import { X } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { MouseEvent } from "react";
 import type { DragState, TodoItem } from "../types";
@@ -101,7 +100,7 @@ export function TodoRow({
           aria-label="删除"
           onClick={() => onDelete(item.id)}
         >
-          <X size={14} strokeWidth={2} />
+          X
         </button>
       </div>
     </article>
