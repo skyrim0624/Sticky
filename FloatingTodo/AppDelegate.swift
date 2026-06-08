@@ -13,8 +13,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var collapsePoll: DispatchSourceTimer?
     private var outsideCount = 0
 
-    private let panelWidth: CGFloat = 430
-    private let panelMaxHeight: CGFloat = 430
+    private let panelWidth: CGFloat = 400
+    private let panelMaxHeight: CGFloat = 360
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         setupStatusItem()

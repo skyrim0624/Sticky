@@ -33,7 +33,6 @@ export function App() {
   );
   const todos = activePage?.todos ?? [];
   const listTitle = activePage?.title ?? "待办事项";
-  const pending = useMemo(() => todos.filter((todo) => !todo.completed), [todos]);
   const completed = useMemo(() => todos.filter((todo) => todo.completed), [todos]);
   const progress = todos.length ? completed.length / todos.length : 0;
 
@@ -303,12 +302,10 @@ export function App() {
               </div>
             ) : (
               <>
-                {todos.map((item, index) => (
+                {todos.map((item) => (
                   <TodoRow
                     key={item.id}
                     item={item}
-                    index={index}
-                    totalPending={Math.max(pending.length, 1)}
                     dragState={dragState}
                     onDragStateChange={setDragState}
                     onMovePending={movePending}
