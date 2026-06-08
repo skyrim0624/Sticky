@@ -1,9 +1,22 @@
+import {
+  AlarmClock,
+  BedDouble,
+  BookOpen,
+  Coffee,
+  Dumbbell,
+  Gamepad2,
+  Laptop,
+  Pill,
+  TreePine,
+  Utensils
+} from "lucide-react";
 import { useEffect, useState } from "react";
-import type { MouseEvent } from "react";
+import type { CSSProperties, MouseEvent } from "react";
 import type { DragState, TodoItem } from "../types";
 
 type TodoRowProps = {
   item: TodoItem;
+  index: number;
   dragState: DragState;
   onDragStateChange: (state: DragState) => void;
   onMovePending: (fromId: string, toId: string) => void;
@@ -15,6 +28,7 @@ type TodoRowProps = {
 
 export function TodoRow({
   item,
+  index,
   dragState,
   onDragStateChange,
   onMovePending,
@@ -27,6 +41,7 @@ export function TodoRow({
   const [titleText, setTitleText] = useState(item.text);
 
   const isDragging = dragState?.itemId === item.id;
+  const Icon = CARD_ICONS[index % CARD_ICONS.length];
 
   useEffect(() => {
     setTitleText(item.text);
@@ -37,6 +52,7 @@ export function TodoRow({
       className="todo-row"
       data-completed={item.completed}
       data-dragging={isDragging}
+      style={{ "--cell-bg": cellTone(index) } as CSSProperties}
       draggable={!item.completed}
       onDragStart={(event) => {
         if (item.completed) return;
@@ -52,15 +68,6 @@ export function TodoRow({
       onDragEnd={() => onDragStateChange(null)}
     >
       <div className="todo-main">
-        <button
-          className="check-button"
-          type="button"
-          aria-label={item.completed ? "标记为未完成" : "标记为已完成"}
-          onClick={(event) => onToggle(item, event)}
-        >
-          <span className="check-dot" />
-        </button>
-
         {editingTitle && !item.completed ? (
           <input
             className="title-input"
@@ -93,6 +100,27 @@ export function TodoRow({
             {item.text}
           </button>
         )}
+
+        {item.completed && (
+          <button
+            className="check-badge"
+            type="button"
+            aria-label="标记为未完成"
+            onClick={(event) => onToggle(item, event)}
+          >
+            ✓
+          </button>
+        )}
+
+        <button
+          className="card-icon-button"
+          type="button"
+          aria-label={item.completed ? "标记为未完成" : "标记为已完成"}
+          onClick={(event) => onToggle(item, event)}
+        >
+          <Icon size={34} strokeWidth={1.7} />
+        </button>
+
         <button
           className="icon-button delete-button"
           type="button"
@@ -105,4 +133,11 @@ export function TodoRow({
       </div>
     </article>
   );
+}
+
+const CARD_ICONS = [AlarmClock, BedDouble, Pill, Dumbbell, Utensils, Coffee, Laptop, TreePine, Gamepad2, BookOpen];
+const CARD_TONES = ["#fffdf8", "#fbf7ee", "#eef8fb", "#fffdf8", "#f5fbef", "#fff4f7"];
+
+function cellTone(index: number) {
+  return CARD_TONES[index % CARD_TONES.length];
 }

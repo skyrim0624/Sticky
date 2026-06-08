@@ -1,6 +1,7 @@
 import confetti from "canvas-confetti";
+import { CalendarDays, Plus, Settings } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { MouseEvent } from "react";
+import type { CSSProperties, MouseEvent } from "react";
 import { TodoRow } from "./components/TodoRow";
 import { useReducedMotion } from "./hooks/use-reduced-motion";
 import type { DragState, TodoItem, TodoPage } from "./types";
@@ -17,6 +18,7 @@ import {
 const COMPLETION_SOUND_URL = "/sounds/task-complete-bell.wav";
 const COMPLETION_SOUND_DELAYS = [0, 140, 280];
 const CLASSIC_CONFETTI_COLORS = ["#ff3b30", "#ffcc00", "#34c759", "#0a84ff", "#af52de", "#ff9500"];
+const CELL_TONES = ["#fffdf8", "#fbf7ee", "#eef8fb", "#fffdf8", "#f5fbef", "#fff4f7"];
 
 export function App() {
   const completionAudioRef = useRef<HTMLAudioElement | null>(null);
@@ -33,6 +35,7 @@ export function App() {
   const todos = activePage?.todos ?? [];
   const listTitle = activePage?.title ?? "待办事项";
   const completed = useMemo(() => todos.filter((todo) => todo.completed), [todos]);
+  const gridCellCount = Math.max(6, Math.ceil(todos.length / 3) * 3);
   const browserDate = useMemo(
     () =>
       new Intl.DateTimeFormat("en-US", {
@@ -42,6 +45,16 @@ export function App() {
       })
         .format(new Date())
         .toUpperCase(),
+    []
+  );
+  const yearLabel = useMemo(
+    () =>
+      new Intl.DateTimeFormat("en-US", {
+        day: "numeric",
+        year: "numeric"
+      })
+        .format(new Date())
+        .replace(",", "."),
     []
   );
 
@@ -214,56 +227,11 @@ export function App() {
   return (
     <main className="app-shell">
       <section className="todo-panel" aria-label="Floating Todo Web">
-        <div className="window-chrome">
-          <div className="traffic-lights" aria-hidden="true">
-            <span className="traffic-dot traffic-red" />
-            <span className="traffic-dot traffic-yellow" />
-            <span className="traffic-dot traffic-green" />
-          </div>
-          <span className="browser-date">{browserDate}</span>
-        </div>
-
-        <nav className="bookmark-sidebar" aria-label="便贴书签">
-          <span className="bookmark-label">BOOKMARKS</span>
-          {pages.map((page) => {
-            const pageTitle = displayPageTitle(page);
-            const isActive = page.id === activePageId;
-
-            return (
-              <button
-                key={page.id}
-                className="bookmark-tab"
-                type="button"
-                title={pageTitle}
-                aria-label={`切换到 ${pageTitle}`}
-                data-active={isActive}
-                onClick={() => selectPage(page.id)}
-              >
-                <span>{pageTitle}</span>
-              </button>
-            );
-          })}
-          {pages.length < 2 && (
-            <button
-              className="bookmark-tab"
-              type="button"
-              title="灵感"
-              aria-label="新建灵感便贴"
-              data-active={false}
-              onClick={() => addPage("灵感")}
-            >
-              <span>灵感</span>
-            </button>
-          )}
-          <button className="bookmark-add" type="button" title="新建便贴" aria-label="新建便贴" onClick={() => addPage()}>
-            + PAGE
-          </button>
-        </nav>
-
         <div className="todo-content">
           <audio ref={completionAudioRef} src={COMPLETION_SOUND_URL} preload="auto" />
 
           <header className="panel-header">
+            <span className="year-label">{yearLabel}</span>
             <div className="title-stack">
               <input
                 className="list-title-input"
@@ -271,15 +239,50 @@ export function App() {
                 aria-label="列表标题"
                 onChange={(event) => updateActivePage((page) => ({ ...page, title: event.target.value }))}
               />
+              <CalendarDays className="title-calendar" size={24} strokeWidth={3} />
               <p className="task-count">
-                ONE THING. THEN ANOTHER. VERY ADVANCED.
+                {browserDate}
               </p>
             </div>
           </header>
 
-          <div className="todo-list-label">
-            <span>TASKS</span>
-            <span>{completed.length}/{Math.max(todos.length, 1)}</span>
+          <nav className="bookmark-sidebar" aria-label="便贴书签">
+            {pages.slice(0, 6).map((page, index) => {
+              const pageTitle = displayPageTitle(page);
+              const isActive = page.id === activePageId;
+              const ratio = page.todos.length ? page.todos.filter((todo) => todo.completed).length / page.todos.length : 0;
+
+              return (
+                <button
+                  key={page.id}
+                  className="bookmark-tab"
+                  type="button"
+                  title={pageTitle}
+                  aria-label={`切换到 ${pageTitle}`}
+                  data-active={isActive}
+                  data-completed={!isActive && ratio >= 1}
+                  onClick={() => selectPage(page.id)}
+                >
+                  <span>{isActive ? "Today" : Array.from(pageTitle).slice(0, index === 0 ? 3 : 2).join("")}</span>
+                  <strong>{index + 8}</strong>
+                </button>
+              );
+            })}
+            <button className="bookmark-add" type="button" title="新建便贴" aria-label="新建便贴" onClick={() => addPage()}>
+              <span>New</span>
+              <strong>+</strong>
+            </button>
+          </nav>
+
+          <div className="progress-toolbar">
+            <div className="task-progress">
+              <span className="progress-check">✓</span>
+              <span>{completed.length} / {Math.max(todos.length, 1)}</span>
+            </div>
+            <div className="toolbar-actions" aria-hidden="true">
+              <span>?</span>
+              <Settings size={21} strokeWidth={2.4} />
+            </div>
           </div>
 
           <div className="todo-list">
@@ -290,19 +293,29 @@ export function App() {
               </div>
             ) : (
               <>
-                {todos.map((item) => (
-                  <TodoRow
-                    key={item.id}
-                    item={item}
-                    dragState={dragState}
-                    onDragStateChange={setDragState}
-                    onMovePending={movePending}
-                    onToggle={toggleTodo}
-                    onDelete={deleteTodo}
-                    onUpdateText={updateText}
-                    onUpdateNote={updateNote}
-                  />
-                ))}
+                {Array.from({ length: gridCellCount }, (_, index) => {
+                  const item = todos[index];
+                  return item ? (
+                    <TodoRow
+                      key={item.id}
+                      item={item}
+                      index={index}
+                      dragState={dragState}
+                      onDragStateChange={setDragState}
+                      onMovePending={movePending}
+                      onToggle={toggleTodo}
+                      onDelete={deleteTodo}
+                      onUpdateText={updateText}
+                      onUpdateNote={updateNote}
+                    />
+                  ) : (
+                    <div
+                      key={`empty-${index}`}
+                      className="todo-placeholder"
+                      style={{ "--cell-bg": CELL_TONES[index % CELL_TONES.length] } as CSSProperties}
+                    />
+                  );
+                })}
               </>
             )}
           </div>
@@ -315,11 +328,11 @@ export function App() {
             }}
           >
             <button className="add-icon" type="submit" title="添加待办" aria-label="添加待办">
-              ADD
+              <Plus size={18} strokeWidth={3} />
             </button>
             <input
               value={newTodoText}
-              placeholder="TYPE THE THING."
+              placeholder="添加新待办..."
               aria-label="添加新待办"
               onChange={(event) => setNewTodoText(event.target.value)}
             />

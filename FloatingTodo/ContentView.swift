@@ -5,26 +5,32 @@ import AppKit
 // MARK: - Design Tokens
 
 private enum Theme {
-    static let paper = Color(red: 0.91, green: 0.86, blue: 0.74)
-    static let paperSoft = Color(red: 0.96, green: 0.91, blue: 0.80)
-    static let ink = Color(red: 0.05, green: 0.045, blue: 0.04)
-    static let pencil = ink.opacity(0.78)
-    static let faintLine = ink.opacity(0.22)
-    static let surface = ink.opacity(0.06)
+    static let paper = Color(red: 0.99, green: 0.985, blue: 0.965)
+    static let paperSoft = Color.white
+    static let ink = Color(red: 0.09, green: 0.09, blue: 0.09)
+    static let pencil = Color(red: 0.36, green: 0.36, blue: 0.36)
+    static let faintLine = Color.black.opacity(0.17)
+    static let surface = Color.black.opacity(0.035)
+    static let green = Color(red: 0.11, green: 0.79, blue: 0.43)
+    static let greenSoft = Color(red: 0.80, green: 0.96, blue: 0.86)
+    static let creamCell = Color(red: 0.98, green: 0.95, blue: 0.89)
+    static let blueCell = Color(red: 0.92, green: 0.97, blue: 0.99)
+    static let pinkCell = Color(red: 1.00, green: 0.94, blue: 0.96)
+    static let mintCell = Color(red: 0.96, green: 0.99, blue: 0.91)
     static let text = ink
-    static let textSecondary = ink.opacity(0.68)
-    static let textTertiary = ink.opacity(0.42)
-    static let accent = ink
-    static let accentSoft = ink.opacity(0.05)
-    static let brand = Color(red: 0.15, green: 0.45, blue: 0.95)
+    static let textSecondary = Color.black.opacity(0.46)
+    static let textTertiary = Color.black.opacity(0.30)
+    static let accent = green
+    static let accentSoft = greenSoft
+    static let brand = green
     static let danger = Color.primary.opacity(0.4)
     static let dangerSoft = Color.primary.opacity(0.03)
     static let success = Color.primary.opacity(0.25)
     static let divider = faintLine
     static let inputBg = Color.clear
-    static let checkboxBorder = ink
-    static let cornerRadius: CGFloat = 0
-    static let innerRadius: CGFloat = 0
+    static let checkboxBorder = ink.opacity(0.74)
+    static let cornerRadius: CGFloat = 24
+    static let innerRadius: CGFloat = 14
     static let noteText = Color.primary.opacity(0.55)
     static let noteBg = Color.primary.opacity(0.025)
     static let noteBorder = Color.primary.opacity(0.06)
@@ -65,7 +71,7 @@ struct ContentView: View {
 
     private var pending: [TodoItem] { store.todos.filter { !$0.completed } }
     private var completed: [TodoItem] { store.todos.filter { $0.completed } }
-    private var displayFontName: String { "Impact" }
+    private var displayFontName: String { "Arial Black" }
 
     var body: some View {
         ZStack(alignment: .topLeading) {
@@ -80,7 +86,7 @@ struct ContentView: View {
                     .id(confettiBurst)
             }
         }
-        .frame(width: 420, height: 620, alignment: .topLeading)
+        .frame(width: 390, height: 560, alignment: .topLeading)
         .environment(\.colorScheme, .light)
         .onChange(of: store.activePageId) {
             newTodoText = ""
@@ -92,45 +98,31 @@ struct ContentView: View {
     }
 
     private var outerWindow: some View {
-        ZStack(alignment: .topLeading) {
-            Rectangle()
-                .fill(Theme.ink)
-                .frame(width: 374, height: 580)
-                .offset(x: 18, y: 18)
+        VStack(alignment: .leading, spacing: 16) {
+            headerView
+            pageSelector
+            progressToolbar
 
-            VStack(spacing: 0) {
-                browserBar
-
-                VStack(alignment: .leading, spacing: 18) {
-                    headerView
-                    pageSelector
-
-                    if store.todos.isEmpty {
-                        emptyState
-                    } else {
-                        todoList
-                    }
-
-                    inputBar
-                }
-                .padding(.horizontal, 18)
-                .padding(.vertical, 18)
+            if store.todos.isEmpty {
+                emptyState
+            } else {
+                todoList
             }
-            .frame(width: 374, height: 580, alignment: .top)
-            .background(Theme.paperSoft)
-            .overlay(
-                Rectangle()
-                    .strokeBorder(Theme.ink, lineWidth: 3)
-            )
-            .overlay(PrintTexture().allowsHitTesting(false))
 
-            RetroCursor()
-                .fill(Theme.ink)
-                .frame(width: 54, height: 74)
-                .offset(x: 348, y: 474)
-                .rotationEffect(.degrees(-7))
+            inputBar
         }
-        .offset(x: 10, y: 10)
+        .padding(.horizontal, 14)
+        .padding(.top, 18)
+        .padding(.bottom, 14)
+        .frame(width: 368, height: 540, alignment: .topLeading)
+        .background(Theme.paperSoft)
+        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 22, style: .continuous)
+                .strokeBorder(Color.black.opacity(0.10), lineWidth: 1)
+        )
+        .shadow(color: Color.black.opacity(0.13), radius: 18, x: 0, y: 8)
+        .offset(x: 11, y: 10)
     }
 
     private var browserBar: some View {
@@ -166,51 +158,52 @@ struct ContentView: View {
     }
 
     private var pageSelector: some View {
-        VStack(alignment: .leading, spacing: 7) {
-            Text("BOOKMARKS")
-                .font(.system(size: 10, weight: .black, design: .monospaced))
-                .foregroundStyle(Theme.textSecondary)
-
-            ForEach(store.pages) { page in
-                PageRadioButton(
-                    title: displayTitle(for: page),
+        HStack(alignment: .top, spacing: 10) {
+            ForEach(Array(store.pages.prefix(6).enumerated()), id: \.element.id) { index, page in
+                HabitDateChip(
+                    label: chipLabel(for: page, index: index),
+                    value: "\(index + 8)",
                     isActive: page.id == store.activePageId,
-                    action: {
-                        withAnimation(.easeOut(duration: 0.12)) {
-                            store.selectPage(page.id)
-                        }
-                    }
-                )
-            }
-
-            if store.pages.count < 2 {
-                PageRadioButton(title: "灵感", isActive: false) {
-                    withAnimation(.easeOut(duration: 0.12)) {
-                        store.addPage(title: "灵感")
+                    isCompleted: page.id != store.activePageId && completedRatio(for: page) >= 1
+                ) {
+                    withAnimation(.easeOut(duration: 0.16)) {
+                        store.selectPage(page.id)
                     }
                 }
             }
 
             Button {
-                withAnimation(.easeOut(duration: 0.12)) {
+                withAnimation(.easeOut(duration: 0.16)) {
                     store.addPage()
                 }
             } label: {
-                Text("+ PAGE")
-                    .font(.system(size: 12, weight: .black, design: .monospaced))
-                    .frame(maxWidth: .infinity, minHeight: 30)
+                VStack(spacing: 7) {
+                    Text("New")
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundStyle(Theme.textSecondary)
+                    Text("+")
+                        .font(.system(size: 22, weight: .semibold))
+                        .frame(width: 36, height: 36)
+                        .background(Circle().fill(Color.white))
+                        .overlay(Circle().stroke(Color.black.opacity(0.10), lineWidth: 1.4))
+                }
             }
             .buttonStyle(.plain)
-            .foregroundStyle(Theme.paperSoft)
-            .background(Theme.ink)
-            .overlay(Rectangle().strokeBorder(Theme.ink, lineWidth: 3))
-            .background(alignment: .topLeading) {
-                Rectangle()
-                    .fill(Theme.ink)
-                    .offset(x: 4, y: 4)
-            }
             .help("新建便贴")
         }
+    }
+
+    private var progressToolbar: some View {
+        HStack(spacing: 9) {
+            Image(systemName: "checkmark.square")
+                .font(.system(size: 20, weight: .medium))
+            Text("\(completed.count) / \(max(store.todos.count, 1))")
+                .font(.system(size: 20, weight: .semibold))
+            Spacer()
+            toolbarSquare("?")
+            toolbarIcon("gearshape")
+        }
+        .foregroundStyle(Theme.ink)
     }
 
     private var chromeBar: some View {
@@ -312,15 +305,18 @@ struct ContentView: View {
     // MARK: - Header
 
     private var headerView: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 7) {
+            Text(yearLabel)
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(Theme.ink)
+
+            HStack(alignment: .center, spacing: 8) {
                 if isEditingPageTitle {
-                    TextField("这里可以写标题...", text: $pageTitleText)
-                        .font(.system(size: 32, weight: .black, design: .default))
+                    TextField("MY TURN", text: $pageTitleText)
+                        .font(.system(size: 30, weight: .black, design: .rounded))
                         .foregroundStyle(Theme.text)
                         .textFieldStyle(.plain)
                         .focused($pageTitleFocused)
-                        .frame(height: 44)
                         .onSubmit(finishPageTitleEditing)
                         .onChange(of: pageTitleFocused) {
                             if !pageTitleFocused {
@@ -329,12 +325,10 @@ struct ContentView: View {
                         }
                 } else {
                     Text(displayPageTitle.uppercased())
-                        .font(.custom(displayFontName, size: 46))
+                        .font(.system(size: 30, weight: .black, design: .rounded))
                         .foregroundStyle(Theme.text)
                         .lineLimit(1)
-                        .minimumScaleFactor(0.42)
-                        .frame(height: 68, alignment: .leading)
-                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .minimumScaleFactor(0.54)
                         .contentShape(Rectangle())
                         .onTapGesture(count: 2) {
                             pageTitleText = store.activePageTitle
@@ -343,14 +337,11 @@ struct ContentView: View {
                         }
                 }
 
-                Text("ONE THING. THEN ANOTHER. VERY ADVANCED.")
-                    .font(.system(size: 10, weight: .black, design: .monospaced))
-                    .foregroundStyle(Theme.textSecondary)
+                Image(systemName: "calendar")
+                    .font(.system(size: 21, weight: .black))
+                    .foregroundStyle(Theme.ink)
+                    .padding(.top, 2)
             }
-
-            Rectangle()
-                .fill(Theme.ink)
-                .frame(height: 3)
         }
     }
 
@@ -384,94 +375,95 @@ struct ContentView: View {
     // MARK: - Empty State
 
     private var emptyState: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("NOTHING HERE.")
-                .font(.custom(displayFontName, size: 28))
+        VStack(spacing: 10) {
+            Image(systemName: "sparkles")
+                .font(.system(size: 36, weight: .regular))
                 .foregroundStyle(Theme.ink)
-            Text("THE MACHINE HAS NO OPINION.")
-                .font(.system(size: 10, weight: .black, design: .monospaced))
+            Text("今天没有安排")
+                .font(.system(size: 17, weight: .semibold))
                 .foregroundStyle(Theme.textSecondary)
         }
-        .frame(maxWidth: .infinity, minHeight: 126, alignment: .leading)
-        .padding(14)
-        .overlay(Rectangle().strokeBorder(Theme.ink, lineWidth: 3))
+        .frame(maxWidth: .infinity, minHeight: 270)
+        .background(Theme.creamCell)
+        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(Theme.faintLine, lineWidth: 1.3))
     }
 
     // MARK: - Todo List
 
     private var todoList: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Text("TASKS")
-                    .font(.system(size: 10, weight: .black, design: .monospaced))
-                Spacer()
-                Text("\(completed.count)/\(max(store.todos.count, 1))")
-                    .font(.system(size: 10, weight: .black, design: .monospaced))
-            }
-            .foregroundStyle(Theme.textSecondary)
-
-            ScrollView(.vertical, showsIndicators: false) {
-                VStack(spacing: 0) {
-                    ForEach(store.todos) { item in
-                        todoRow(item: item)
+        ScrollView(.vertical, showsIndicators: false) {
+            LazyVGrid(columns: gridColumns, spacing: 0) {
+                ForEach(0..<gridCellCount, id: \.self) { index in
+                    if index < store.todos.count {
+                        let item = store.todos[index]
+                        TodoGridCard(
+                            item: item,
+                            store: store,
+                            iconName: gridIconName(for: index),
+                            background: gridCellBackground(for: index),
+                            isDragging: draggingId == item.id,
+                            onComplete: celebrateCompletion
+                        )
+                        .frame(height: 112)
+                        .simultaneousGesture(gridDragGesture(for: item))
+                    } else {
+                        EmptyGridCard(background: gridCellBackground(for: index))
+                            .frame(height: 112)
                     }
                 }
-            }
-            .frame(height: 123)
-            .overlay(alignment: .top) {
-                Rectangle()
-                    .fill(Theme.ink)
-                    .frame(height: 3)
             }
         }
+        .frame(height: 224)
+        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(Theme.faintLine, lineWidth: 1.4))
     }
 
-    private func todoRow(item: TodoItem) -> some View {
-        return TodoRowContent(
-            item: item,
-            store: store,
-            isDragging: draggingId == item.id,
-            showGrip: false,
-            onComplete: celebrateCompletion
-        )
-        .simultaneousGesture(
-            DragGesture(minimumDistance: 5, coordinateSpace: .global)
-                .onChanged { value in
-                    if draggingId == nil {
-                        draggingId = item.id
-                        dragAccumulated = 0
-                    }
-                    var effective = value.translation.height - dragAccumulated
-                    let rowH: CGFloat = 44
+    private var gridColumns: [GridItem] {
+        Array(repeating: GridItem(.flexible(minimum: 0), spacing: 0), count: 3)
+    }
 
-                    while true {
-                        let currentPending = store.todos.filter { !$0.completed }
-                        guard let curIndex = currentPending.firstIndex(where: { $0.id == item.id }) else { break }
+    private var gridCellCount: Int {
+        max(6, Int(ceil(Double(store.todos.count) / 3.0)) * 3)
+    }
 
-                        if effective > rowH * 0.55 && curIndex < currentPending.count - 1 {
-                            withAnimation(.spring(response: 0.25, dampingFraction: 0.75)) {
-                                store.moveDown(item)
-                            }
-                            dragAccumulated += rowH
-                            effective -= rowH
-                        } else if effective < -rowH * 0.55 && curIndex > 0 {
-                            withAnimation(.spring(response: 0.25, dampingFraction: 0.75)) {
-                                store.moveUp(item)
-                            }
-                            dragAccumulated -= rowH
-                            effective += rowH
-                        } else {
-                            break
+    private func gridDragGesture(for item: TodoItem) -> some Gesture {
+        DragGesture(minimumDistance: 5, coordinateSpace: .global)
+            .onChanged { value in
+                if draggingId == nil {
+                    draggingId = item.id
+                    dragAccumulated = 0
+                }
+                var effective = value.translation.height - dragAccumulated
+                let rowH: CGFloat = 112
+
+                while true {
+                    let currentPending = store.todos.filter { !$0.completed }
+                    guard let curIndex = currentPending.firstIndex(where: { $0.id == item.id }) else { break }
+
+                    if effective > rowH * 0.55 && curIndex < currentPending.count - 1 {
+                        withAnimation(.spring(response: 0.25, dampingFraction: 0.75)) {
+                            store.moveDown(item)
                         }
+                        dragAccumulated += rowH
+                        effective -= rowH
+                    } else if effective < -rowH * 0.55 && curIndex > 0 {
+                        withAnimation(.spring(response: 0.25, dampingFraction: 0.75)) {
+                            store.moveUp(item)
+                        }
+                        dragAccumulated -= rowH
+                        effective += rowH
+                    } else {
+                        break
                     }
                 }
-                .onEnded { _ in
-                    withAnimation(.easeOut(duration: 0.2)) {
-                        draggingId = nil
-                        dragAccumulated = 0
-                    }
+            }
+            .onEnded { _ in
+                withAnimation(.easeOut(duration: 0.2)) {
+                    draggingId = nil
+                    dragAccumulated = 0
                 }
-        )
+            }
     }
 
     private func celebrateCompletion() {
@@ -496,33 +488,29 @@ struct ContentView: View {
     // MARK: - Input Bar
 
     private var inputBar: some View {
-        HStack(spacing: 8) {
-            TextField("TYPE THE THING.", text: $newTodoText)
+        HStack(spacing: 10) {
+            TextField("添加新待办...", text: $newTodoText)
                 .textFieldStyle(.plain)
-                .font(.system(size: 13, weight: .black, design: .monospaced))
+                .font(.system(size: 15, weight: .medium))
                 .foregroundStyle(Theme.ink)
                 .focused($inputFocused)
-                .padding(.horizontal, 10)
-                .frame(height: 42)
-                .overlay(Rectangle().strokeBorder(Theme.ink, lineWidth: 3))
+                .padding(.horizontal, 12)
+                .frame(height: 40)
+                .background(Color.white)
+                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(Theme.faintLine, lineWidth: 1.2))
                 .onSubmit {
                     submitNewTodo()
                 }
 
             Button(action: submitNewTodo) {
-                Text("ADD")
-                    .font(.system(size: 13, weight: .black, design: .monospaced))
-                    .foregroundStyle(Theme.paperSoft)
-                    .frame(width: 64, height: 42)
+                Image(systemName: "plus")
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundStyle(.white)
+                    .frame(width: 40, height: 40)
             }
             .buttonStyle(.plain)
-            .background(Theme.ink)
-            .overlay(Rectangle().strokeBorder(Theme.ink, lineWidth: 3))
-            .background(alignment: .topLeading) {
-                Rectangle()
-                    .fill(Theme.ink)
-                    .offset(x: 4, y: 4)
-            }
+            .background(Circle().fill(Theme.green))
             .help("添加待办")
         }
     }
@@ -539,9 +527,53 @@ struct ContentView: View {
         return formatter.string(from: Date()).uppercased()
     }
 
+    private var yearLabel: String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.dateFormat = "d. yyyy"
+        return formatter.string(from: Date())
+    }
+
     private func displayTitle(for page: TodoPage) -> String {
         let trimmed = page.title.trimmingCharacters(in: .whitespacesAndNewlines)
         return trimmed.isEmpty ? "未命名" : trimmed
+    }
+
+    private func chipLabel(for page: TodoPage, index: Int) -> String {
+        if page.id == store.activePageId { return "Today" }
+        let title = displayTitle(for: page)
+        return String(title.prefix(index == 0 ? 3 : 2))
+    }
+
+    private func completedRatio(for page: TodoPage) -> Double {
+        guard !page.todos.isEmpty else { return 0 }
+        return Double(page.todos.filter(\.completed).count) / Double(page.todos.count)
+    }
+
+    private func toolbarSquare(_ text: String) -> some View {
+        Text(text)
+            .font(.system(size: 18, weight: .semibold))
+            .frame(width: 40, height: 40)
+            .background(Color.black.opacity(0.035))
+            .clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
+    }
+
+    private func toolbarIcon(_ systemName: String) -> some View {
+        Image(systemName: systemName)
+            .font(.system(size: 20, weight: .medium))
+            .frame(width: 40, height: 40)
+            .background(Color.black.opacity(0.035))
+            .clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
+    }
+
+    private func gridCellBackground(for index: Int) -> Color {
+        let colors: [Color] = [.white, Theme.creamCell, Theme.blueCell, .white, Theme.mintCell, Theme.pinkCell]
+        return colors[index % colors.count]
+    }
+
+    private func gridIconName(for index: Int) -> String {
+        let icons = ["alarm", "bed.double", "pills", "figure.mind.and.body", "fork.knife", "cup.and.saucer", "laptopcomputer", "tree", "gamecontroller", "book"]
+        return icons[index % icons.count]
     }
 
     private func finishPageTitleEditing() {
@@ -672,6 +704,179 @@ private struct PageRadioButton: View {
         }
         .buttonStyle(.plain)
         .foregroundStyle(Theme.ink)
+    }
+}
+
+private struct HabitDateChip: View {
+    let label: String
+    let value: String
+    let isActive: Bool
+    let isCompleted: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 7) {
+                Text(label)
+                    .font(.system(size: 11, weight: isActive ? .semibold : .regular))
+                    .foregroundStyle(isActive ? Theme.ink : Theme.textSecondary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+                    .frame(width: 36)
+
+                ZStack(alignment: .bottom) {
+                    Circle()
+                        .fill(isActive || isCompleted ? Theme.green : Color.white)
+                        .frame(width: 36, height: 36)
+                        .overlay(Circle().stroke(Theme.ink.opacity(isActive ? 0.78 : 0.12), lineWidth: isActive ? 1.6 : 1.2))
+
+                    if isCompleted && !isActive {
+                        Capsule()
+                            .fill(Theme.green)
+                            .frame(width: 27, height: 4)
+                            .offset(y: 1)
+                    }
+
+                    if isActive {
+                        Circle()
+                            .stroke(Color.black.opacity(0.82), lineWidth: 1.5)
+                            .frame(width: 28, height: 28)
+                    }
+
+                    Text(value)
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundStyle(Theme.ink)
+                }
+            }
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+private struct TodoGridCard: View {
+    let item: TodoItem
+    @ObservedObject var store: TodoStore
+    let iconName: String
+    let background: Color
+    let isDragging: Bool
+    let onComplete: (() -> Void)?
+
+    @State private var isHovering = false
+    @State private var isEditingTitle = false
+    @State private var titleText = ""
+    @FocusState private var titleFocused: Bool
+
+    var body: some View {
+        ZStack(alignment: .topTrailing) {
+            VStack(spacing: 8) {
+                Spacer(minLength: 8)
+
+                if isEditingTitle && !item.completed {
+                    TextField("任务名称", text: $titleText)
+                        .textFieldStyle(.plain)
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundStyle(Theme.ink)
+                        .multilineTextAlignment(.center)
+                        .focused($titleFocused)
+                        .onSubmit(finishEditing)
+                        .onChange(of: titleFocused) {
+                            if !titleFocused { finishEditing() }
+                        }
+                } else {
+                    Text(item.text)
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundStyle(item.completed ? Theme.textTertiary : Theme.ink)
+                        .multilineTextAlignment(.center)
+                        .lineLimit(2)
+                        .minimumScaleFactor(0.72)
+                        .frame(maxWidth: .infinity)
+                        .contentShape(Rectangle())
+                        .onTapGesture(count: 1, perform: toggleCompletion)
+                        .onTapGesture(count: 2) {
+                            guard !item.completed else { return }
+                            titleText = item.text
+                            isEditingTitle = true
+                            titleFocused = true
+                        }
+                }
+
+                Spacer(minLength: 0)
+
+                Image(systemName: iconName)
+                    .font(.system(size: 33, weight: .regular))
+                    .foregroundStyle(Theme.ink)
+                    .frame(height: 38)
+                    .padding(.bottom, 7)
+            }
+            .padding(.horizontal, 8)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+            if item.completed {
+                RoundedRectangle(cornerRadius: 6, style: .continuous)
+                    .fill(Theme.ink)
+                    .frame(width: 36, height: 36)
+                    .overlay(
+                        Image(systemName: "checkmark")
+                            .font(.system(size: 19, weight: .bold))
+                            .foregroundStyle(.white)
+                    )
+                    .rotationEffect(.degrees(-10))
+                    .offset(x: -31, y: 50)
+            }
+
+            if isHovering {
+                Button {
+                    withAnimation(.spring(response: 0.28, dampingFraction: 0.82)) {
+                        store.delete(item)
+                    }
+                } label: {
+                    Image(systemName: "minus.circle")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundStyle(Theme.ink.opacity(0.68))
+                        .padding(5)
+                }
+                .buttonStyle(.plain)
+                .transition(.opacity)
+            }
+        }
+        .background(background)
+        .overlay(Rectangle().strokeBorder(Theme.faintLine, lineWidth: 1.2))
+        .opacity(isDragging ? 0.62 : 1)
+        .scaleEffect(isDragging ? 0.98 : 1)
+        .onHover { hovering in
+            withAnimation(.easeOut(duration: 0.14)) {
+                isHovering = hovering
+            }
+        }
+        .onAppear {
+            titleText = item.text
+        }
+    }
+
+    private func toggleCompletion() {
+        let wasCompleted = item.completed
+        withAnimation(.spring(response: 0.34, dampingFraction: 0.78)) {
+            store.toggle(item)
+        }
+        if !wasCompleted {
+            onComplete?()
+        }
+    }
+
+    private func finishEditing() {
+        guard isEditingTitle else { return }
+        isEditingTitle = false
+        store.updateText(item, text: titleText)
+    }
+}
+
+private struct EmptyGridCard: View {
+    let background: Color
+
+    var body: some View {
+        Rectangle()
+            .fill(background.opacity(0.42))
+            .overlay(Rectangle().strokeBorder(Theme.faintLine, lineWidth: 1.2))
     }
 }
 
