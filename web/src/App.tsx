@@ -1,3 +1,4 @@
+import { Check, Clipboard, Download, MoreHorizontal, Plus, RotateCcw } from "lucide-react";
 import confetti from "canvas-confetti";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, MouseEvent } from "react";
@@ -16,8 +17,7 @@ import {
 
 const COMPLETION_SOUND_URL = "/sounds/task-complete-bell.wav";
 const COMPLETION_SOUND_DELAYS = [0, 140, 280];
-const CLASSIC_CONFETTI_COLORS = ["#fffaf0", "#ffffff", "#efe6d1", "#fffaf0", "#ffffff", "#efe6d1"];
-const PAGE_COLORS = ["#1f3ab8", "#128750", "#c73833", "#dc990f"];
+const CLASSIC_CONFETTI_COLORS = ["#ff3b30", "#ffcc00", "#34c759", "#0a84ff", "#af52de", "#ff9500"];
 
 export function App() {
   const completionAudioRef = useRef<HTMLAudioElement | null>(null);
@@ -33,19 +33,9 @@ export function App() {
   );
   const todos = activePage?.todos ?? [];
   const listTitle = activePage?.title ?? "待办事项";
+  const pending = useMemo(() => todos.filter((todo) => !todo.completed), [todos]);
   const completed = useMemo(() => todos.filter((todo) => todo.completed), [todos]);
-  const activePageIndex = Math.max(
-    0,
-    pages.findIndex((page) => page.id === activePageId)
-  );
-  const activePageColor = PAGE_COLORS[activePageIndex % PAGE_COLORS.length];
-  const panelStyle = { "--page-bg": activePageColor } as CSSProperties;
-  const browserDate = useMemo(() => {
-    const now = new Date();
-    const day = String(now.getDate()).padStart(2, "0");
-    const month = String(now.getMonth() + 1).padStart(2, "0");
-    return `${day}/${month}/${now.getFullYear()}`;
-  }, []);
+  const progress = todos.length ? completed.length / todos.length : 0;
 
   useEffect(() => {
     saveWorkspace(workspace);
@@ -215,16 +205,62 @@ export function App() {
 
   return (
     <main className="app-shell">
-      <section className="todo-panel" aria-label="Floating Todo Web" style={panelStyle}>
+      <section className="todo-panel" aria-label="Floating Todo Web">
         <div className="window-chrome">
-          <span className="browser-date">{browserDate}</span>
-          <span className="browser-line" aria-hidden="true" />
           <div className="traffic-lights" aria-hidden="true">
             <span className="traffic-dot traffic-red" />
             <span className="traffic-dot traffic-yellow" />
             <span className="traffic-dot traffic-green" />
           </div>
+
+          <div className="chrome-actions">
+            <div className="progress-ring" style={{ "--progress": progress } as CSSProperties}>
+              <Check size={11} strokeWidth={3} />
+            </div>
+            <span className="chrome-progress">
+              {completed.length}/{Math.max(todos.length, 1)}
+            </span>
+            <button className="more-button" type="button" title="更多" aria-label="更多">
+              <MoreHorizontal size={18} strokeWidth={3} />
+            </button>
+          </div>
         </div>
+
+        <nav className="bookmark-sidebar" aria-label="便贴书签">
+          {pages.map((page) => {
+            const pageTitle = displayPageTitle(page);
+            const isActive = page.id === activePageId;
+
+            return (
+              <button
+                key={page.id}
+                className="bookmark-tab"
+                type="button"
+                title={pageTitle}
+                aria-label={`切换到 ${pageTitle}`}
+                data-active={isActive}
+                onClick={() => selectPage(page.id)}
+              >
+                <span>{shortBookmarkTitle(pageTitle)}</span>
+              </button>
+            );
+          })}
+          {pages.length < 2 && (
+            <button
+              className="bookmark-tab"
+              type="button"
+              title="灵感"
+              aria-label="新建灵感便贴"
+              data-active={false}
+              onClick={() => addPage("灵感")}
+            >
+              <span>灵感</span>
+            </button>
+          )}
+          <button className="bookmark-add" type="button" title="新建便贴" aria-label="新建便贴" onClick={() => addPage()}>
+            <Plus size={13} strokeWidth={3} />
+          </button>
+        </nav>
 
         <div className="todo-content">
           <audio ref={completionAudioRef} src={COMPLETION_SOUND_URL} preload="auto" />
@@ -238,28 +274,41 @@ export function App() {
                 onChange={(event) => updateActivePage((page) => ({ ...page, title: event.target.value }))}
               />
               <p className="task-count">
-                ONE THING. THEN ANOTHER. VERY ADVANCED.
+                专注当下，一件件完成。
               </p>
             </div>
-          </header>
 
-          <div className="todo-list-label">
-            <span>TASKS</span>
-            <span>{completed.length}/{Math.max(todos.length, 1)}</span>
-          </div>
+            <div className="header-actions">
+              <button className="icon-button" type="button" title="复制 Markdown" aria-label="复制 Markdown" onClick={copyMarkdown}>
+                <Clipboard size={15} strokeWidth={2} />
+              </button>
+              <button className="icon-button" type="button" title="下载 Markdown" aria-label="下载 Markdown" onClick={downloadMarkdown}>
+                <Download size={15} strokeWidth={2} />
+              </button>
+              <button className="icon-button" type="button" title="重置测试数据" aria-label="重置测试数据" onClick={resetPrototype}>
+                <RotateCcw size={15} strokeWidth={2} />
+              </button>
+
+              <div className="progress-ring" style={{ "--progress": progress } as CSSProperties}>
+                <Check size={11} strokeWidth={3} />
+              </div>
+            </div>
+          </header>
 
           <div className="todo-list">
             {todos.length === 0 ? (
               <div className="empty-state">
-                <span>NOTHING HERE.</span>
-                <p>THE MACHINE HAS NO OPINION.</p>
+                <span>✨</span>
+                <p>享受当下的空闲时刻</p>
               </div>
             ) : (
               <>
-                {todos.map((item) => (
+                {todos.map((item, index) => (
                   <TodoRow
                     key={item.id}
                     item={item}
+                    index={index}
+                    totalPending={Math.max(pending.length, 1)}
                     dragState={dragState}
                     onDragStateChange={setDragState}
                     onMovePending={movePending}
@@ -281,57 +330,16 @@ export function App() {
             }}
           >
             <button className="add-icon" type="submit" title="添加待办" aria-label="添加待办">
-              ADD
+              <Plus size={13} strokeWidth={3} />
             </button>
             <input
               value={newTodoText}
-              placeholder="TYPE THE THING."
+              placeholder="添加新待办…"
               aria-label="添加新待办"
               onChange={(event) => setNewTodoText(event.target.value)}
             />
           </form>
         </div>
-
-        <nav className="bookmark-sidebar" aria-label="便贴书签">
-          {pages.map((page, index) => {
-            const pageTitle = displayPageTitle(page);
-            const isActive = page.id === activePageId;
-            const bookmarkStyle = { "--bookmark-color": PAGE_COLORS[index % PAGE_COLORS.length] } as CSSProperties;
-
-            return (
-              <button
-                key={page.id}
-                className="bookmark-tab"
-                type="button"
-                title={pageTitle}
-                aria-label={`切换到 ${pageTitle}`}
-                data-active={isActive}
-                style={bookmarkStyle}
-                onClick={() => selectPage(page.id)}
-              >
-                <strong>{index + 1}</strong>
-                <span>{shortBookmarkTitle(pageTitle)}</span>
-              </button>
-            );
-          })}
-          {pages.length < 2 && (
-            <button
-              className="bookmark-tab"
-              type="button"
-              title="灵感"
-              aria-label="新建灵感便贴"
-              data-active={false}
-              style={{ "--bookmark-color": PAGE_COLORS[pages.length % PAGE_COLORS.length] } as CSSProperties}
-              onClick={() => addPage("灵感")}
-            >
-              <strong>{pages.length + 1}</strong>
-              <span>灵感</span>
-            </button>
-          )}
-          <button className="bookmark-add" type="button" title="新建便贴" aria-label="新建便贴" onClick={() => addPage()}>
-            +
-          </button>
-        </nav>
       </section>
     </main>
   );
@@ -341,10 +349,10 @@ function updatePageTodos(page: TodoPage, update: (todos: TodoItem[]) => TodoItem
   return { ...page, todos: update(page.todos) };
 }
 
-function clamp(value: number, min: number, max: number) {
-  return Math.min(Math.max(value, min), max);
+function shortBookmarkTitle(title: string) {
+  return Array.from(title).slice(0, 2).join("");
 }
 
-function shortBookmarkTitle(title: string) {
-  return Array.from(title).slice(0, 4).join("");
+function clamp(value: number, min: number, max: number) {
+  return Math.min(Math.max(value, min), max);
 }
