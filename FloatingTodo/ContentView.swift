@@ -5,32 +5,27 @@ import AppKit
 // MARK: - Design Tokens
 
 private enum Theme {
-    static let paper = Color(red: 0.99, green: 0.985, blue: 0.965)
-    static let paperSoft = Color.white
-    static let ink = Color(red: 0.09, green: 0.09, blue: 0.09)
-    static let pencil = Color(red: 0.36, green: 0.36, blue: 0.36)
-    static let faintLine = Color.black.opacity(0.17)
-    static let surface = Color.black.opacity(0.035)
-    static let green = Color(red: 0.11, green: 0.79, blue: 0.43)
-    static let greenSoft = Color(red: 0.80, green: 0.96, blue: 0.86)
-    static let creamCell = Color(red: 0.98, green: 0.95, blue: 0.89)
-    static let blueCell = Color(red: 0.92, green: 0.97, blue: 0.99)
-    static let pinkCell = Color(red: 1.00, green: 0.94, blue: 0.96)
-    static let mintCell = Color(red: 0.96, green: 0.99, blue: 0.91)
+    static let paper = Color(red: 0.90, green: 0.86, blue: 0.76)
+    static let paperSoft = Color(red: 0.12, green: 0.22, blue: 0.72)
+    static let ink = Color.white
+    static let shadowInk = Color(red: 0.03, green: 0.04, blue: 0.12)
+    static let pencil = ink.opacity(0.78)
+    static let faintLine = ink.opacity(0.22)
+    static let surface = ink.opacity(0.06)
     static let text = ink
-    static let textSecondary = Color.black.opacity(0.46)
-    static let textTertiary = Color.black.opacity(0.30)
-    static let accent = green
-    static let accentSoft = greenSoft
-    static let brand = green
+    static let textSecondary = ink.opacity(0.68)
+    static let textTertiary = ink.opacity(0.42)
+    static let accent = ink
+    static let accentSoft = ink.opacity(0.05)
+    static let brand = ink
     static let danger = Color.primary.opacity(0.4)
     static let dangerSoft = Color.primary.opacity(0.03)
     static let success = Color.primary.opacity(0.25)
     static let divider = faintLine
     static let inputBg = Color.clear
-    static let checkboxBorder = ink.opacity(0.74)
-    static let cornerRadius: CGFloat = 24
-    static let innerRadius: CGFloat = 14
+    static let checkboxBorder = ink
+    static let cornerRadius: CGFloat = 0
+    static let innerRadius: CGFloat = 0
     static let noteText = Color.primary.opacity(0.55)
     static let noteBg = Color.primary.opacity(0.025)
     static let noteBorder = Color.primary.opacity(0.06)
@@ -43,14 +38,24 @@ private enum Theme {
     static let tabText = ink
     static let tabBorder = ink
     static let tabSpine = ink.opacity(0.28)
-    static let confettiColors: [Color] = [
-        Color(red: 0.98, green: 0.24, blue: 0.31),
-        Color(red: 1.00, green: 0.70, blue: 0.16),
-        Color(red: 0.20, green: 0.78, blue: 0.42),
-        Color(red: 0.10, green: 0.55, blue: 0.96),
-        Color(red: 0.62, green: 0.28, blue: 0.95),
-        Color(red: 0.98, green: 0.38, blue: 0.74)
+    static let pagePalette: [Color] = [
+        Color(red: 0.12, green: 0.22, blue: 0.72),
+        Color(red: 0.07, green: 0.53, blue: 0.31),
+        Color(red: 0.78, green: 0.22, blue: 0.20),
+        Color(red: 0.86, green: 0.60, blue: 0.08)
     ]
+    static let confettiColors: [Color] = [
+        ink,
+        ink.opacity(0.74),
+        Color(red: 1.0, green: 0.98, blue: 0.92),
+        Color(red: 0.93, green: 0.88, blue: 0.76),
+        ink.opacity(0.50),
+        paper.opacity(0.86)
+    ]
+
+    static func pageColor(for index: Int) -> Color {
+        pagePalette[index % pagePalette.count]
+    }
 }
 
 // MARK: - Main Content View
@@ -71,10 +76,18 @@ struct ContentView: View {
 
     private var pending: [TodoItem] { store.todos.filter { !$0.completed } }
     private var completed: [TodoItem] { store.todos.filter { $0.completed } }
-    private var displayFontName: String { "Arial Black" }
+    private var displayFontName: String { "Hannotate SC" }
+    private var activePageIndex: Int {
+        store.pages.firstIndex { $0.id == store.activePageId } ?? 0
+    }
+    private var activePageColor: Color {
+        Theme.pageColor(for: activePageIndex)
+    }
 
     var body: some View {
         ZStack(alignment: .topLeading) {
+            Theme.paper
+
             outerWindow
 
             if showsCompletionConfetti && !reduceMotion {
@@ -86,7 +99,7 @@ struct ContentView: View {
                     .id(confettiBurst)
             }
         }
-        .frame(width: 390, height: 560, alignment: .topLeading)
+        .frame(width: 520, height: 620, alignment: .topLeading)
         .environment(\.colorScheme, .light)
         .onChange(of: store.activePageId) {
             newTodoText = ""
@@ -98,112 +111,121 @@ struct ContentView: View {
     }
 
     private var outerWindow: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            headerView
-            pageSelector
-            progressToolbar
+        ZStack(alignment: .topLeading) {
+            Rectangle()
+                .fill(Theme.shadowInk.opacity(0.22))
+                .frame(width: 374, height: 580)
+                .offset(x: 4, y: 4)
 
-            if store.todos.isEmpty {
-                emptyState
-            } else {
-                todoList
+            VStack(spacing: 0) {
+                browserBar
+
+                VStack(alignment: .leading, spacing: 18) {
+                    headerView
+
+                    if store.todos.isEmpty {
+                        emptyState
+                    } else {
+                        todoList
+                    }
+
+                    inputBar
+                }
+                .padding(.horizontal, 18)
+                .padding(.vertical, 18)
             }
+            .frame(width: 374, height: 580, alignment: .top)
+            .background(activePageColor)
+            .overlay(
+                Rectangle()
+                    .strokeBorder(Theme.ink, lineWidth: 2.5)
+            )
+            .overlay(PrintTexture().allowsHitTesting(false))
 
-            inputBar
+            bookmarkEdge
+                .offset(x: 370, y: 92)
         }
-        .padding(.horizontal, 14)
-        .padding(.top, 18)
-        .padding(.bottom, 14)
-        .frame(width: 368, height: 540, alignment: .topLeading)
-        .background(Theme.paperSoft)
-        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: 22, style: .continuous)
-                .strokeBorder(Color.black.opacity(0.10), lineWidth: 1)
-        )
-        .shadow(color: Color.black.opacity(0.13), radius: 18, x: 0, y: 8)
-        .offset(x: 11, y: 10)
+        .offset(x: 10, y: 10)
     }
 
     private var browserBar: some View {
-        HStack(spacing: 10) {
-            HStack(spacing: 6) {
-                controlDot
-                controlDot
-                controlDot
-            }
-
-            Spacer(minLength: 8)
-
+        HStack(spacing: 9) {
             Text(currentDateLabel)
-                .font(.system(size: 11, weight: .black, design: .monospaced))
+                .font(.system(size: 13, weight: .black, design: .monospaced))
                 .foregroundStyle(Theme.ink)
-                .textCase(.uppercase)
+
+            Rectangle()
+                .fill(Theme.ink)
+                .frame(height: 2)
+
+            controlDot(isFilled: true)
+            controlDot(isFilled: false)
+            controlDot(isFilled: false)
         }
         .frame(height: 38)
         .padding(.horizontal, 12)
-        .background(Theme.paper)
+        .background(activePageColor)
         .overlay(alignment: .bottom) {
             Rectangle()
                 .fill(Theme.ink)
-                .frame(height: 3)
+                .frame(height: 2.5)
         }
     }
 
-    private var controlDot: some View {
+    private func controlDot(isFilled: Bool) -> some View {
         Circle()
-            .fill(Theme.paperSoft)
+            .fill(isFilled ? Theme.ink : Color.clear)
             .frame(width: 13, height: 13)
             .overlay(Circle().stroke(Theme.ink, lineWidth: 2.5))
     }
 
     private var pageSelector: some View {
-        HStack(alignment: .top, spacing: 10) {
-            ForEach(Array(store.pages.prefix(6).enumerated()), id: \.element.id) { index, page in
-                HabitDateChip(
-                    label: chipLabel(for: page, index: index),
-                    value: "\(index + 8)",
+        VStack(alignment: .leading, spacing: 7) {
+            Text("BOOKMARKS")
+                .font(.system(size: 10, weight: .black, design: .monospaced))
+                .foregroundStyle(Theme.textSecondary)
+
+            ForEach(Array(store.pages.enumerated()), id: \.element.id) { index, page in
+                PageRadioButton(
+                    title: displayTitle(for: page),
                     isActive: page.id == store.activePageId,
-                    isCompleted: page.id != store.activePageId && completedRatio(for: page) >= 1
-                ) {
-                    withAnimation(.easeOut(duration: 0.16)) {
-                        store.selectPage(page.id)
+                    pageColor: Theme.pageColor(for: index),
+                    action: {
+                        withAnimation(.easeOut(duration: 0.12)) {
+                            store.selectPage(page.id)
+                        }
+                    }
+                )
+            }
+
+            if store.pages.count < 2 {
+                PageRadioButton(title: "灵感", isActive: false, pageColor: Theme.pageColor(for: store.pages.count)) {
+                    withAnimation(.easeOut(duration: 0.12)) {
+                        store.addPage(title: "灵感")
                     }
                 }
             }
 
             Button {
-                withAnimation(.easeOut(duration: 0.16)) {
+                withAnimation(.easeOut(duration: 0.12)) {
                     store.addPage()
                 }
             } label: {
-                VStack(spacing: 7) {
-                    Text("New")
-                        .font(.system(size: 11, weight: .medium))
-                        .foregroundStyle(Theme.textSecondary)
-                    Text("+")
-                        .font(.system(size: 22, weight: .semibold))
-                        .frame(width: 36, height: 36)
-                        .background(Circle().fill(Color.white))
-                        .overlay(Circle().stroke(Color.black.opacity(0.10), lineWidth: 1.4))
-                }
+                Text("+ PAGE")
+                    .font(.system(size: 12, weight: .black, design: .monospaced))
+                    .frame(maxWidth: .infinity, minHeight: 30)
             }
             .buttonStyle(.plain)
+            .foregroundStyle(activePageColor)
+            .background(Theme.ink)
+            .overlay(Rectangle().strokeBorder(Theme.ink, lineWidth: 3))
+            .background(alignment: .topLeading) {
+                Rectangle()
+                    .fill(Theme.shadowInk.opacity(0.24))
+                    .offset(x: 2, y: 2)
+            }
             .help("新建便贴")
         }
-    }
-
-    private var progressToolbar: some View {
-        HStack(spacing: 9) {
-            Image(systemName: "checkmark.square")
-                .font(.system(size: 20, weight: .medium))
-            Text("\(completed.count) / \(max(store.todos.count, 1))")
-                .font(.system(size: 20, weight: .semibold))
-            Spacer()
-            toolbarSquare("?")
-            toolbarIcon("gearshape")
-        }
-        .foregroundStyle(Theme.ink)
     }
 
     private var chromeBar: some View {
@@ -242,21 +264,27 @@ struct ContentView: View {
     // MARK: - Bookmark Sidebar
 
     private var bookmarkEdge: some View {
-        VStack(spacing: 8) {
-            ForEach(store.pages) { page in
-                BookmarkButton(
-                    page: page,
-                    isActive: page.id == store.activePageId,
-                    action: {
-                        withAnimation(.spring(response: 0.28, dampingFraction: 0.82)) {
-                            store.selectPage(page.id)
-                        }
+        VStack(spacing: 10) {
+            ForEach(Array(store.pages.enumerated()), id: \.element.id) { index, page in
+                ColoredBookmarkButton(
+                    title: bookmarkTitle(for: page),
+                    number: index + 1,
+                    color: Theme.pageColor(for: index),
+                    isActive: page.id == store.activePageId
+                ) {
+                    withAnimation(.spring(response: 0.28, dampingFraction: 0.82)) {
+                        store.selectPage(page.id)
                     }
-                )
+                }
             }
 
             if store.pages.count < 2 {
-                GhostBookmarkButton(title: "灵感") {
+                ColoredBookmarkButton(
+                    title: "灵感",
+                    number: store.pages.count + 1,
+                    color: Theme.pageColor(for: store.pages.count),
+                    isActive: false
+                ) {
                     withAnimation(.spring(response: 0.32, dampingFraction: 0.82)) {
                         store.addPage(title: "灵感")
                     }
@@ -268,55 +296,41 @@ struct ContentView: View {
                     store.addPage()
                 }
             } label: {
-                Image(systemName: "plus")
-                    .font(.system(size: 20, weight: .regular))
-                    .frame(width: 64, height: 36)
+                Text("+")
+                    .font(.custom("Chalkboard SE", size: 28))
+                    .fontWeight(.black)
+                    .frame(width: 78, height: 48)
             }
             .buttonStyle(.plain)
-            .foregroundStyle(Theme.tabText)
+            .foregroundStyle(activePageColor)
             .background(
-                EdgeTabShape(chamfer: 7)
-                    .fill(
-                        LinearGradient(
-                            colors: [Theme.tabAddTop, Theme.tabAddBottom],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        )
-                    )
-                    .shadow(color: .black.opacity(0.06), radius: 5, x: 1, y: 2)
+                EdgeTabShape(chamfer: 13)
+                    .fill(Theme.ink)
+                    .shadow(color: Theme.shadowInk.opacity(0.16), radius: 0, x: 3, y: 4)
             )
             .overlay(
-                EdgeTabShape(chamfer: 7)
-                    .strokeBorder(Theme.tabBorder, lineWidth: 1)
+                EdgeTabShape(chamfer: 13)
+                    .strokeBorder(Theme.ink, lineWidth: 3)
             )
-            .overlay(alignment: .leading) {
-                Rectangle()
-                    .fill(Theme.tabBorder.opacity(0.35))
-                    .frame(width: 1)
-                    .padding(.vertical, 4)
-            }
             .help("新建便贴")
 
             Spacer(minLength: 0)
         }
-        .frame(width: 72, alignment: .leading)
+        .frame(width: 92, alignment: .leading)
     }
 
     // MARK: - Header
 
     private var headerView: some View {
-        VStack(alignment: .leading, spacing: 7) {
-            Text(yearLabel)
-                .font(.system(size: 13, weight: .semibold))
-                .foregroundStyle(Theme.ink)
-
-            HStack(alignment: .center, spacing: 8) {
+        VStack(alignment: .leading, spacing: 10) {
+            VStack(alignment: .leading, spacing: 8) {
                 if isEditingPageTitle {
-                    TextField("MY TURN", text: $pageTitleText)
-                        .font(.system(size: 30, weight: .black, design: .rounded))
+                    TextField("这里可以写标题...", text: $pageTitleText)
+                        .font(.system(size: 32, weight: .black, design: .default))
                         .foregroundStyle(Theme.text)
                         .textFieldStyle(.plain)
                         .focused($pageTitleFocused)
+                        .frame(height: 44)
                         .onSubmit(finishPageTitleEditing)
                         .onChange(of: pageTitleFocused) {
                             if !pageTitleFocused {
@@ -324,11 +338,13 @@ struct ContentView: View {
                             }
                         }
                 } else {
-                    Text(displayPageTitle.uppercased())
-                        .font(.system(size: 30, weight: .black, design: .rounded))
+                    Text(displayPageTitle)
+                        .font(.custom(displayFontName, size: 46))
                         .foregroundStyle(Theme.text)
                         .lineLimit(1)
-                        .minimumScaleFactor(0.54)
+                        .minimumScaleFactor(0.42)
+                        .frame(height: 68, alignment: .leading)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                         .contentShape(Rectangle())
                         .onTapGesture(count: 2) {
                             pageTitleText = store.activePageTitle
@@ -337,12 +353,19 @@ struct ContentView: View {
                         }
                 }
 
-                Image(systemName: "calendar")
-                    .font(.system(size: 21, weight: .black))
-                    .foregroundStyle(Theme.ink)
-                    .padding(.top, 2)
+                Text("one thing. then another. very advanced.")
+                    .font(.custom("Chalkboard SE", size: 16))
+                    .fontWeight(.black)
+                    .foregroundStyle(Theme.textSecondary)
+                    .lineLimit(2)
+                    .frame(maxWidth: 255, alignment: .leading)
             }
+
+            Rectangle()
+                .fill(Theme.ink)
+                .frame(height: 4)
         }
+        .rotationEffect(.degrees(-0.35))
     }
 
     private var progressRing: some View {
@@ -375,95 +398,94 @@ struct ContentView: View {
     // MARK: - Empty State
 
     private var emptyState: some View {
-        VStack(spacing: 10) {
-            Image(systemName: "sparkles")
-                .font(.system(size: 36, weight: .regular))
+        VStack(alignment: .leading, spacing: 8) {
+            Text("NOTHING HERE.")
+                .font(.custom(displayFontName, size: 28))
                 .foregroundStyle(Theme.ink)
-            Text("今天没有安排")
-                .font(.system(size: 17, weight: .semibold))
+            Text("THE MACHINE HAS NO OPINION.")
+                .font(.system(size: 10, weight: .black, design: .monospaced))
                 .foregroundStyle(Theme.textSecondary)
         }
-        .frame(maxWidth: .infinity, minHeight: 270)
-        .background(Theme.creamCell)
-        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(Theme.faintLine, lineWidth: 1.3))
+        .frame(maxWidth: .infinity, minHeight: 126, alignment: .leading)
+        .padding(14)
+        .overlay(Rectangle().strokeBorder(Theme.ink, lineWidth: 3))
     }
 
     // MARK: - Todo List
 
     private var todoList: some View {
-        ScrollView(.vertical, showsIndicators: false) {
-            LazyVGrid(columns: gridColumns, spacing: 0) {
-                ForEach(0..<gridCellCount, id: \.self) { index in
-                    if index < store.todos.count {
-                        let item = store.todos[index]
-                        TodoGridCard(
-                            item: item,
-                            store: store,
-                            iconName: gridIconName(for: index),
-                            background: gridCellBackground(for: index),
-                            isDragging: draggingId == item.id,
-                            onComplete: celebrateCompletion
-                        )
-                        .frame(height: 112)
-                        .simultaneousGesture(gridDragGesture(for: item))
-                    } else {
-                        EmptyGridCard(background: gridCellBackground(for: index))
-                            .frame(height: 112)
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Text("TASKS")
+                    .font(.system(size: 10, weight: .black, design: .monospaced))
+                Spacer()
+                Text("\(completed.count)/\(max(store.todos.count, 1))")
+                    .font(.system(size: 10, weight: .black, design: .monospaced))
+            }
+            .foregroundStyle(Theme.textSecondary)
+
+            ScrollView(.vertical, showsIndicators: false) {
+                VStack(spacing: 0) {
+                    ForEach(store.todos) { item in
+                        todoRow(item: item)
                     }
                 }
+            }
+            .frame(height: 188)
+            .overlay(alignment: .top) {
+                Rectangle()
+                    .fill(Theme.ink)
+                    .frame(height: 3)
             }
         }
-        .frame(height: 224)
-        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(Theme.faintLine, lineWidth: 1.4))
     }
 
-    private var gridColumns: [GridItem] {
-        Array(repeating: GridItem(.flexible(minimum: 0), spacing: 0), count: 3)
-    }
+    private func todoRow(item: TodoItem) -> some View {
+        return TodoRowContent(
+            item: item,
+            store: store,
+            isDragging: draggingId == item.id,
+            showGrip: false,
+            onComplete: celebrateCompletion
+        )
+        .simultaneousGesture(
+            DragGesture(minimumDistance: 5, coordinateSpace: .global)
+                .onChanged { value in
+                    if draggingId == nil {
+                        draggingId = item.id
+                        dragAccumulated = 0
+                    }
+                    var effective = value.translation.height - dragAccumulated
+                    let rowH: CGFloat = 44
 
-    private var gridCellCount: Int {
-        max(6, Int(ceil(Double(store.todos.count) / 3.0)) * 3)
-    }
+                    while true {
+                        let currentPending = store.todos.filter { !$0.completed }
+                        guard let curIndex = currentPending.firstIndex(where: { $0.id == item.id }) else { break }
 
-    private func gridDragGesture(for item: TodoItem) -> some Gesture {
-        DragGesture(minimumDistance: 5, coordinateSpace: .global)
-            .onChanged { value in
-                if draggingId == nil {
-                    draggingId = item.id
-                    dragAccumulated = 0
-                }
-                var effective = value.translation.height - dragAccumulated
-                let rowH: CGFloat = 112
-
-                while true {
-                    let currentPending = store.todos.filter { !$0.completed }
-                    guard let curIndex = currentPending.firstIndex(where: { $0.id == item.id }) else { break }
-
-                    if effective > rowH * 0.55 && curIndex < currentPending.count - 1 {
-                        withAnimation(.spring(response: 0.25, dampingFraction: 0.75)) {
-                            store.moveDown(item)
+                        if effective > rowH * 0.55 && curIndex < currentPending.count - 1 {
+                            withAnimation(.spring(response: 0.25, dampingFraction: 0.75)) {
+                                store.moveDown(item)
+                            }
+                            dragAccumulated += rowH
+                            effective -= rowH
+                        } else if effective < -rowH * 0.55 && curIndex > 0 {
+                            withAnimation(.spring(response: 0.25, dampingFraction: 0.75)) {
+                                store.moveUp(item)
+                            }
+                            dragAccumulated -= rowH
+                            effective += rowH
+                        } else {
+                            break
                         }
-                        dragAccumulated += rowH
-                        effective -= rowH
-                    } else if effective < -rowH * 0.55 && curIndex > 0 {
-                        withAnimation(.spring(response: 0.25, dampingFraction: 0.75)) {
-                            store.moveUp(item)
-                        }
-                        dragAccumulated -= rowH
-                        effective += rowH
-                    } else {
-                        break
                     }
                 }
-            }
-            .onEnded { _ in
-                withAnimation(.easeOut(duration: 0.2)) {
-                    draggingId = nil
-                    dragAccumulated = 0
+                .onEnded { _ in
+                    withAnimation(.easeOut(duration: 0.2)) {
+                        draggingId = nil
+                        dragAccumulated = 0
+                    }
                 }
-            }
+        )
     }
 
     private func celebrateCompletion() {
@@ -488,29 +510,56 @@ struct ContentView: View {
     // MARK: - Input Bar
 
     private var inputBar: some View {
-        HStack(spacing: 10) {
-            TextField("添加新待办...", text: $newTodoText)
-                .textFieldStyle(.plain)
-                .font(.system(size: 15, weight: .medium))
-                .foregroundStyle(Theme.ink)
-                .focused($inputFocused)
-                .padding(.horizontal, 12)
-                .frame(height: 40)
-                .background(Color.white)
-                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-                .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(Theme.faintLine, lineWidth: 1.2))
-                .onSubmit {
-                    submitNewTodo()
+        HStack(spacing: 8) {
+            ZStack(alignment: .leading) {
+                if newTodoText.isEmpty {
+                    Text("TYPE THE THING.")
+                        .font(.custom("Chalkboard SE", size: 18))
+                        .fontWeight(.black)
+                        .foregroundStyle(Theme.ink.opacity(0.58))
+                        .padding(.leading, 18)
+                        .allowsHitTesting(false)
                 }
 
+                TextField("", text: $newTodoText)
+                    .textFieldStyle(.plain)
+                    .font(.custom("Chalkboard SE", size: 18))
+                    .fontWeight(.black)
+                    .foregroundStyle(Theme.ink)
+                    .focused($inputFocused)
+                    .padding(.horizontal, 18)
+                    .frame(height: 64)
+                    .onSubmit {
+                        submitNewTodo()
+                    }
+            }
+            .frame(height: 64)
+            .overlay(
+                RoundedRectangle(cornerRadius: 13, style: .continuous)
+                    .strokeBorder(Theme.ink, lineWidth: 4)
+            )
+
             Button(action: submitNewTodo) {
-                Image(systemName: "plus")
-                    .font(.system(size: 18, weight: .bold))
-                    .foregroundStyle(.white)
-                    .frame(width: 40, height: 40)
+                Text("ADD")
+                    .font(.custom("Chalkboard SE", size: 14))
+                    .fontWeight(.black)
+                    .foregroundStyle(activePageColor)
+                    .frame(width: 66, height: 64)
             }
             .buttonStyle(.plain)
-            .background(Circle().fill(Theme.green))
+            .background(
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .fill(Theme.ink)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .strokeBorder(Theme.ink, lineWidth: 4)
+            )
+            .background(alignment: .topLeading) {
+                Rectangle()
+                    .fill(Theme.shadowInk.opacity(0.24))
+                    .offset(x: 2, y: 2)
+            }
             .help("添加待办")
         }
     }
@@ -523,15 +572,8 @@ struct ContentView: View {
     private var currentDateLabel: String {
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.dateFormat = "dd MMM yyyy"
+        formatter.dateFormat = "dd/MM/yyyy"
         return formatter.string(from: Date()).uppercased()
-    }
-
-    private var yearLabel: String {
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.dateFormat = "d. yyyy"
-        return formatter.string(from: Date())
     }
 
     private func displayTitle(for page: TodoPage) -> String {
@@ -539,41 +581,9 @@ struct ContentView: View {
         return trimmed.isEmpty ? "未命名" : trimmed
     }
 
-    private func chipLabel(for page: TodoPage, index: Int) -> String {
-        if page.id == store.activePageId { return "Today" }
+    private func bookmarkTitle(for page: TodoPage) -> String {
         let title = displayTitle(for: page)
-        return String(title.prefix(index == 0 ? 3 : 2))
-    }
-
-    private func completedRatio(for page: TodoPage) -> Double {
-        guard !page.todos.isEmpty else { return 0 }
-        return Double(page.todos.filter(\.completed).count) / Double(page.todos.count)
-    }
-
-    private func toolbarSquare(_ text: String) -> some View {
-        Text(text)
-            .font(.system(size: 18, weight: .semibold))
-            .frame(width: 40, height: 40)
-            .background(Color.black.opacity(0.035))
-            .clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
-    }
-
-    private func toolbarIcon(_ systemName: String) -> some View {
-        Image(systemName: systemName)
-            .font(.system(size: 20, weight: .medium))
-            .frame(width: 40, height: 40)
-            .background(Color.black.opacity(0.035))
-            .clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
-    }
-
-    private func gridCellBackground(for index: Int) -> Color {
-        let colors: [Color] = [.white, Theme.creamCell, Theme.blueCell, .white, Theme.mintCell, Theme.pinkCell]
-        return colors[index % colors.count]
-    }
-
-    private func gridIconName(for index: Int) -> String {
-        let icons = ["alarm", "bed.double", "pills", "figure.mind.and.body", "fork.knife", "cup.and.saucer", "laptopcomputer", "tree", "gamecontroller", "book"]
-        return icons[index % icons.count]
+        return title.count > 4 ? String(title.prefix(4)) : title
     }
 
     private func finishPageTitleEditing() {
@@ -636,12 +646,19 @@ private struct PaperTexture: View {
 private struct PrintTexture: View {
     var body: some View {
         Canvas { context, size in
-            for index in 0..<520 {
+            for index in 0..<360 {
                 let x = CGFloat((index * 37) % max(Int(size.width), 1))
                 let y = CGFloat((index * 61) % max(Int(size.height), 1))
-                let opacity = index.isMultiple(of: 3) ? 0.10 : 0.045
+                let opacity = index.isMultiple(of: 3) ? 0.08 : 0.035
                 let rect = CGRect(x: x, y: y, width: 1, height: 1)
                 context.fill(Path(rect), with: .color(Theme.ink.opacity(opacity)))
+            }
+
+            for x in stride(from: -size.height, through: size.width, by: 48) {
+                var path = Path()
+                path.move(to: CGPoint(x: x, y: size.height))
+                path.addLine(to: CGPoint(x: x + size.height * 0.72, y: 0))
+                context.stroke(path, with: .color(Theme.ink.opacity(0.055)), lineWidth: 1.15)
             }
 
             for y in stride(from: 64, through: size.height, by: 31) {
@@ -652,7 +669,7 @@ private struct PrintTexture: View {
             }
         }
         .blendMode(.multiply)
-        .opacity(0.65)
+        .opacity(0.38)
     }
 }
 
@@ -674,6 +691,7 @@ private struct RetroCursor: Shape {
 private struct PageRadioButton: View {
     let title: String
     let isActive: Bool
+    let pageColor: Color
     let action: () -> Void
 
     var body: some View {
@@ -681,9 +699,10 @@ private struct PageRadioButton: View {
             HStack(spacing: 10) {
                 ZStack {
                     Circle()
-                        .fill(Theme.paperSoft)
+                        .fill(pageColor)
                         .frame(width: 22, height: 22)
                         .overlay(Circle().stroke(Theme.ink, lineWidth: 3))
+                        .rotationEffect(.degrees(isActive ? -2 : 1.5))
 
                     if isActive {
                         Circle()
@@ -694,6 +713,7 @@ private struct PageRadioButton: View {
 
                 Text(title.uppercased())
                     .font(.system(size: 12, weight: .black, design: .monospaced))
+                    .blur(radius: 0.12)
                     .lineLimit(1)
                     .truncationMode(.tail)
 
@@ -707,176 +727,51 @@ private struct PageRadioButton: View {
     }
 }
 
-private struct HabitDateChip: View {
-    let label: String
-    let value: String
+private struct ColoredBookmarkButton: View {
+    let title: String
+    let number: Int
+    let color: Color
     let isActive: Bool
-    let isCompleted: Bool
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
-            VStack(spacing: 7) {
-                Text(label)
-                    .font(.system(size: 11, weight: isActive ? .semibold : .regular))
-                    .foregroundStyle(isActive ? Theme.ink : Theme.textSecondary)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.7)
-                    .frame(width: 36)
+            VStack(spacing: 3) {
+                Text("\(number)")
+                    .font(.custom("Chalkboard SE", size: 15))
+                    .fontWeight(.black)
 
-                ZStack(alignment: .bottom) {
-                    Circle()
-                        .fill(isActive || isCompleted ? Theme.green : Color.white)
-                        .frame(width: 36, height: 36)
-                        .overlay(Circle().stroke(Theme.ink.opacity(isActive ? 0.78 : 0.12), lineWidth: isActive ? 1.6 : 1.2))
-
-                    if isCompleted && !isActive {
-                        Capsule()
-                            .fill(Theme.green)
-                            .frame(width: 27, height: 4)
-                            .offset(y: 1)
-                    }
-
-                    if isActive {
-                        Circle()
-                            .stroke(Color.black.opacity(0.82), lineWidth: 1.5)
-                            .frame(width: 28, height: 28)
-                    }
-
-                    Text(value)
-                        .font(.system(size: 13, weight: .medium))
-                        .foregroundStyle(Theme.ink)
-                }
+                Text(title)
+                    .font(.custom("Hannotate SC", size: 14))
+                    .fontWeight(.black)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.68)
             }
+            .foregroundStyle(Theme.ink)
+            .frame(width: 78, height: 58)
+            .contentShape(EdgeTabShape(chamfer: 13))
         }
         .buttonStyle(.plain)
-    }
-}
-
-private struct TodoGridCard: View {
-    let item: TodoItem
-    @ObservedObject var store: TodoStore
-    let iconName: String
-    let background: Color
-    let isDragging: Bool
-    let onComplete: (() -> Void)?
-
-    @State private var isHovering = false
-    @State private var isEditingTitle = false
-    @State private var titleText = ""
-    @FocusState private var titleFocused: Bool
-
-    var body: some View {
-        ZStack(alignment: .topTrailing) {
-            VStack(spacing: 8) {
-                Spacer(minLength: 8)
-
-                if isEditingTitle && !item.completed {
-                    TextField("任务名称", text: $titleText)
-                        .textFieldStyle(.plain)
-                        .font(.system(size: 13, weight: .medium))
-                        .foregroundStyle(Theme.ink)
-                        .multilineTextAlignment(.center)
-                        .focused($titleFocused)
-                        .onSubmit(finishEditing)
-                        .onChange(of: titleFocused) {
-                            if !titleFocused { finishEditing() }
-                        }
-                } else {
-                    Text(item.text)
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundStyle(item.completed ? Theme.textTertiary : Theme.ink)
-                        .multilineTextAlignment(.center)
-                        .lineLimit(2)
-                        .minimumScaleFactor(0.72)
-                        .frame(maxWidth: .infinity)
-                        .contentShape(Rectangle())
-                        .onTapGesture(count: 1, perform: toggleCompletion)
-                        .onTapGesture(count: 2) {
-                            guard !item.completed else { return }
-                            titleText = item.text
-                            isEditingTitle = true
-                            titleFocused = true
-                        }
-                }
-
-                Spacer(minLength: 0)
-
-                Image(systemName: iconName)
-                    .font(.system(size: 33, weight: .regular))
-                    .foregroundStyle(Theme.ink)
-                    .frame(height: 38)
-                    .padding(.bottom, 7)
-            }
-            .padding(.horizontal, 8)
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-
-            if item.completed {
-                RoundedRectangle(cornerRadius: 6, style: .continuous)
+        .background(
+            EdgeTabShape(chamfer: 13)
+                .fill(color)
+                .shadow(color: Theme.shadowInk.opacity(0.16), radius: 0, x: 3, y: 4)
+        )
+        .overlay(
+            EdgeTabShape(chamfer: 13)
+                .strokeBorder(Theme.ink, lineWidth: 3)
+        )
+        .overlay(alignment: .leading) {
+            if isActive {
+                Capsule()
                     .fill(Theme.ink)
-                    .frame(width: 36, height: 36)
-                    .overlay(
-                        Image(systemName: "checkmark")
-                            .font(.system(size: 19, weight: .bold))
-                            .foregroundStyle(.white)
-                    )
-                    .rotationEffect(.degrees(-10))
-                    .offset(x: -31, y: 50)
-            }
-
-            if isHovering {
-                Button {
-                    withAnimation(.spring(response: 0.28, dampingFraction: 0.82)) {
-                        store.delete(item)
-                    }
-                } label: {
-                    Image(systemName: "minus.circle")
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundStyle(Theme.ink.opacity(0.68))
-                        .padding(5)
-                }
-                .buttonStyle(.plain)
-                .transition(.opacity)
+                    .frame(width: 4)
+                    .padding(.vertical, 7)
             }
         }
-        .background(background)
-        .overlay(Rectangle().strokeBorder(Theme.faintLine, lineWidth: 1.2))
-        .opacity(isDragging ? 0.62 : 1)
-        .scaleEffect(isDragging ? 0.98 : 1)
-        .onHover { hovering in
-            withAnimation(.easeOut(duration: 0.14)) {
-                isHovering = hovering
-            }
-        }
-        .onAppear {
-            titleText = item.text
-        }
-    }
-
-    private func toggleCompletion() {
-        let wasCompleted = item.completed
-        withAnimation(.spring(response: 0.34, dampingFraction: 0.78)) {
-            store.toggle(item)
-        }
-        if !wasCompleted {
-            onComplete?()
-        }
-    }
-
-    private func finishEditing() {
-        guard isEditingTitle else { return }
-        isEditingTitle = false
-        store.updateText(item, text: titleText)
-    }
-}
-
-private struct EmptyGridCard: View {
-    let background: Color
-
-    var body: some View {
-        Rectangle()
-            .fill(background.opacity(0.42))
-            .overlay(Rectangle().strokeBorder(Theme.faintLine, lineWidth: 1.2))
+        .rotationEffect(.degrees(isActive ? -0.5 : 0.8))
+        .zIndex(isActive ? 2 : 1)
+        .help(title)
     }
 }
 
@@ -1001,14 +896,15 @@ struct TodoRowContent: View {
             HStack(spacing: 11) {
                 ZStack {
                     Circle()
-                        .fill(Theme.paperSoft)
-                        .frame(width: 24, height: 24)
-                        .overlay(Circle().stroke(Theme.ink, lineWidth: 3))
+                        .fill(Color.clear)
+                        .frame(width: 32, height: 32)
+                        .overlay(Circle().stroke(Theme.ink, lineWidth: 4))
+                        .rotationEffect(.degrees(item.completed ? -2 : 1.5))
 
                     if item.completed {
                         Circle()
                             .fill(Theme.ink)
-                            .frame(width: 11, height: 11)
+                            .frame(width: 14, height: 14)
                             .transition(.scale(scale: 0.5).combined(with: .opacity))
                     }
                 }
@@ -1020,7 +916,7 @@ struct TodoRowContent: View {
                 if isEditingTitle && !item.completed {
                     TextField("任务名称", text: $titleText)
                         .textFieldStyle(.plain)
-                        .font(.system(size: 13, weight: .black, design: .monospaced))
+                        .font(.custom("Hannotate SC", size: 20))
                         .foregroundStyle(Theme.text)
                         .focused($titleFocused)
                         .onSubmit {
@@ -1034,7 +930,8 @@ struct TodoRowContent: View {
                         }
                 } else {
                     Text(item.text)
-                        .font(.system(size: 13, weight: .black, design: .monospaced))
+                        .font(.custom("Hannotate SC", size: 20))
+                        .fontWeight(.black)
                         .foregroundStyle(item.completed ? Theme.textTertiary.opacity(0.78) : Theme.text)
                         .blur(radius: item.completed ? 0.25 : 0.12)
                         .scaleEffect(item.completed ? 0.98 : 1.0, anchor: .leading)
