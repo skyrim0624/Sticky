@@ -210,7 +210,7 @@ struct ContentView: View {
     // MARK: - Bookmark Sidebar
 
     private var bookmarkEdge: some View {
-        ScrollView(.vertical, showsIndicators: false) {
+        ScrollView(.vertical, showsIndicators: true) {
             VStack(spacing: 8) {
                 ForEach(store.pages) { page in
                     BookmarkButton(
@@ -252,7 +252,9 @@ struct ContentView: View {
             }
             .padding(.vertical, 2)
         }
-        .frame(width: 88, height: 320, alignment: .leading)
+        .scrollIndicators(.visible, axes: .vertical)
+        .contentMargins(.trailing, 6, for: .scrollContent)
+        .frame(width: 94, height: 320, alignment: .leading)
     }
 
     // MARK: - Header
