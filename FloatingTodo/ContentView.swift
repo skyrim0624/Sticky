@@ -32,9 +32,6 @@ private enum Theme {
     static let tabText = Color(red: 0.30, green: 0.18, blue: 0.08)
     static let tabBorder = Color(red: 0.48, green: 0.29, blue: 0.12)
     static let tabSpine = Color(red: 0.54, green: 0.34, blue: 0.15).opacity(0.24)
-    static let tagText = Color.primary.opacity(0.36)
-    static let starOff = Color.primary.opacity(0.22)
-    static let starOn = Color(red: 0.95, green: 0.62, blue: 0.10)
     static let confettiColors: [Color] = [
         Color(red: 0.98, green: 0.24, blue: 0.31),
         Color(red: 1.00, green: 0.70, blue: 0.16),
@@ -44,15 +41,6 @@ private enum Theme {
         Color(red: 0.98, green: 0.38, blue: 0.74)
     ]
 
-    /// 优先级颜色：红→橙→黄→绿→蓝
-    static func priorityColor(index: Int, total: Int) -> Color {
-        guard total > 1 else { return Color(hue: 0.0, saturation: 0.65, brightness: 0.85) }
-        let fraction = Double(index) / Double(total - 1)
-        let hue = fraction * 0.6
-        let saturation = 0.65 - fraction * 0.1
-        let brightness = 0.85 + fraction * 0.05
-        return Color(hue: hue, saturation: saturation, brightness: brightness)
-    }
 }
 
 // MARK: - Main Content View
@@ -391,8 +379,8 @@ struct ContentView: View {
     private var todoList: some View {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(spacing: 4) {
-                ForEach(Array(store.todos.enumerated()), id: \.element.id) { index, item in
-                    todoRow(item: item, visualIndex: index)
+                ForEach(store.todos) { item in
+                    todoRow(item: item)
                 }
             }
             .padding(.horizontal, 22)
@@ -401,18 +389,12 @@ struct ContentView: View {
         .frame(maxHeight: 188)
     }
 
-    private func todoRow(item: TodoItem, visualIndex: Int) -> some View {
-        let pendingIndex = pending.firstIndex(where: { $0.id == item.id }) ?? visualIndex
-        let meta = rowMeta(index: visualIndex, completed: item.completed)
-
+    private func todoRow(item: TodoItem) -> some View {
         return TodoRowContent(
             item: item,
             store: store,
-            priorityColor: Theme.priorityColor(index: pendingIndex, total: max(pending.count, 1)),
             isDragging: draggingId == item.id,
             showGrip: !item.completed,
-            badgeText: meta.badge,
-            isStarred: meta.starred,
             onComplete: celebrateCompletion,
             onDragChanged: { value in
                 handleDrag(value, for: item)
@@ -459,12 +441,6 @@ struct ContentView: View {
             draggingId = nil
             dragAccumulated = 0
         }
-    }
-
-    private func rowMeta(index: Int, completed: Bool) -> (badge: String, starred: Bool) {
-        let badges = ["工作", "工作", "习惯", "生活", "学习"]
-        let badge = badges[index % badges.count]
-        return (badge, completed || index == 2 || index == 3)
     }
 
     private func celebrateCompletion() {
@@ -711,11 +687,8 @@ private struct GhostBookmarkButton: View {
 struct TodoRowContent: View {
     let item: TodoItem
     @ObservedObject var store: TodoStore
-    let priorityColor: Color?
     let isDragging: Bool
     let showGrip: Bool
-    let badgeText: String
-    let isStarred: Bool
     let onComplete: (() -> Void)?
     let onDragChanged: ((DragGesture.Value) -> Void)?
     let onDragEnded: (() -> Void)?
@@ -807,28 +780,11 @@ struct TodoRowContent: View {
                         .animation(.spring(response: 0.4, dampingFraction: 0.7), value: item.completed)
                 }
 
-                noteChevron
+                if hasNote || isHovering || isExpanded {
+                    noteButton
+                }
 
-                Text(badgeText)
-                    .font(.system(size: 11, weight: .regular, design: .rounded))
-                    .foregroundStyle(Theme.tagText)
-                    .padding(.horizontal, 7)
-                    .frame(height: 21)
-                    .background(
-                        RoundedRectangle(cornerRadius: 6, style: .continuous)
-                            .fill(Color.white.opacity(0.42))
-                    )
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 6, style: .continuous)
-                            .strokeBorder(Color.primary.opacity(0.08), lineWidth: 0.8)
-                    )
-
-                Image(systemName: isStarred ? "star.fill" : "star")
-                    .font(.system(size: 16, weight: .regular))
-                    .foregroundStyle(isStarred ? Theme.starOn : Theme.starOff)
-                    .frame(width: 20, height: 22)
-
-                if showGrip {
+                if showGrip && (isHovering || isDragging) {
                     Image(systemName: "line.3.horizontal")
                         .font(.system(size: 10, weight: .semibold))
                         .foregroundStyle(Theme.textTertiary)
@@ -892,19 +848,20 @@ struct TodoRowContent: View {
         .onDisappear { onInteractionChange(false) }
     }
 
-    private var noteChevron: some View {
-        Image(systemName: "chevron.right")
-            .font(.system(size: 9, weight: .medium))
-            .foregroundStyle(hasNote ? Theme.textSecondary : Theme.textTertiary)
-            .rotationEffect(.degrees(isExpanded ? 90 : 0))
-            .animation(.spring(response: 0.25, dampingFraction: 0.8), value: isExpanded)
-            .frame(width: 16, height: 20)
-            .contentShape(Rectangle())
-            .onTapGesture {
-                withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-                    isExpanded.toggle()
-                }
+    private var noteButton: some View {
+        Button {
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                isExpanded.toggle()
             }
+        } label: {
+            Image(systemName: hasNote ? "note.text" : "plus")
+                .font(.system(size: hasNote ? 11 : 10, weight: .medium))
+                .foregroundStyle(hasNote ? Theme.textSecondary : Theme.textTertiary)
+                .frame(width: 20, height: 22)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .help(hasNote ? "编辑备注" : "添加备注")
     }
 
     private var noteEditor: some View {
