@@ -23,15 +23,10 @@ private enum Theme {
     static let noteText = Color.primary.opacity(0.55)
     static let noteBg = Color.primary.opacity(0.025)
     static let noteBorder = Color.primary.opacity(0.06)
-    static let tabActiveTop = Color(red: 0.97, green: 0.76, blue: 0.44)
-    static let tabActiveBottom = Color(red: 0.88, green: 0.59, blue: 0.24)
-    static let tabInactiveTop = Color(red: 1.00, green: 0.96, blue: 0.84)
-    static let tabInactiveBottom = Color(red: 0.94, green: 0.84, blue: 0.63)
-    static let tabAddTop = Color(red: 1.00, green: 0.93, blue: 0.72)
-    static let tabAddBottom = Color(red: 0.91, green: 0.74, blue: 0.42)
-    static let tabText = Color(red: 0.30, green: 0.18, blue: 0.08)
-    static let tabBorder = Color(red: 0.48, green: 0.29, blue: 0.12)
-    static let tabSpine = Color(red: 0.54, green: 0.34, blue: 0.15).opacity(0.24)
+    static let tabActiveSurface = Color(red: 0.91, green: 0.95, blue: 0.99)
+    static let tabInactiveSurface = Color.white.opacity(0.92)
+    static let tabText = Color(red: 0.18, green: 0.21, blue: 0.25)
+    static let tabBorder = Color(red: 0.52, green: 0.57, blue: 0.64).opacity(0.22)
     static let confettiColors: [Color] = [
         Color(red: 0.98, green: 0.24, blue: 0.31),
         Color(red: 1.00, green: 0.70, blue: 0.16),
@@ -78,7 +73,7 @@ struct ContentView: View {
             outerWindow
 
             bookmarkEdge
-                .offset(x: 326, y: 86)
+                .offset(x: 330, y: 86)
 
             if showsCompletionConfetti && !reduceMotion {
                 CompletionConfettiView(seed: confettiBurst)
@@ -160,12 +155,6 @@ struct ContentView: View {
             RoundedRectangle(cornerRadius: 30, style: .continuous)
                 .strokeBorder(Color.white.opacity(0.72), lineWidth: 1.2)
         )
-        .overlay(alignment: .trailing) {
-            Rectangle()
-                .fill(Theme.tabSpine)
-                .frame(width: 6, height: 196)
-                .offset(x: 4, y: 28)
-        }
     }
 
     private var chromeBar: some View {
@@ -221,70 +210,49 @@ struct ContentView: View {
     // MARK: - Bookmark Sidebar
 
     private var bookmarkEdge: some View {
-        VStack(spacing: 10) {
-            ForEach(store.pages) { page in
-                BookmarkButton(
-                    page: page,
-                    isActive: page.id == store.activePageId,
-                    action: {
-                        withAnimation(.spring(response: 0.28, dampingFraction: 0.82)) {
-                            store.selectPage(page.id)
+        ScrollView(.vertical, showsIndicators: false) {
+            VStack(spacing: 8) {
+                ForEach(store.pages) { page in
+                    BookmarkButton(
+                        page: page,
+                        isActive: page.id == store.activePageId,
+                        action: {
+                            withAnimation(.spring(response: 0.28, dampingFraction: 0.82)) {
+                                store.selectPage(page.id)
+                            }
+                        }
+                    )
+                }
+
+                if store.pages.count < 2 {
+                    GhostBookmarkButton(title: "灵感") {
+                        withAnimation(.spring(response: 0.32, dampingFraction: 0.82)) {
+                            store.addPage(title: "灵感")
                         }
                     }
-                )
-            }
+                }
 
-            if store.pages.count < 2 {
-                GhostBookmarkButton(title: "灵感") {
+                Button {
                     withAnimation(.spring(response: 0.32, dampingFraction: 0.82)) {
-                        store.addPage(title: "灵感")
+                        store.addPage()
                     }
+                } label: {
+                    Image(systemName: "plus")
+                        .font(.system(size: 17, weight: .medium))
+                        .frame(width: 38, height: 38)
                 }
+                .buttonStyle(.plain)
+                .foregroundStyle(Theme.textSecondary)
+                .background(Circle().fill(Color.white.opacity(0.86)))
+                .overlay(Circle().strokeBorder(Theme.tabBorder, lineWidth: 1))
+                .shadow(color: .black.opacity(0.07), radius: 6, x: 1, y: 3)
+                .help("新建便贴")
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.leading, 10)
             }
-
-            Button {
-                withAnimation(.spring(response: 0.32, dampingFraction: 0.82)) {
-                    store.addPage()
-                }
-            } label: {
-                Image(systemName: "plus")
-                    .font(.system(size: 24, weight: .medium))
-                    .frame(width: 86, height: 48)
-            }
-            .buttonStyle(.plain)
-            .foregroundStyle(Theme.tabText)
-            .background(
-                EdgeTabShape(chamfer: 11)
-                    .fill(
-                        LinearGradient(
-                            colors: [Theme.tabAddTop, Theme.tabAddBottom],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        )
-                    )
-                    .shadow(color: .black.opacity(0.18), radius: 13, x: 4, y: 7)
-            )
-            .overlay(TabTexture().clipShape(EdgeTabShape(chamfer: 11)).allowsHitTesting(false))
-            .overlay(
-                EdgeTabShape(chamfer: 11)
-                    .strokeBorder(Theme.tabBorder.opacity(0.46), lineWidth: 1.1)
-            )
-            .overlay(
-                EdgeTabShape(chamfer: 11)
-                    .strokeBorder(Color.white.opacity(0.45), lineWidth: 0.8)
-                    .padding(3)
-            )
-            .overlay(alignment: .leading) {
-                Rectangle()
-                    .fill(Theme.tabBorder.opacity(0.2))
-                    .frame(width: 5)
-                    .padding(.vertical, 5)
-            }
-            .help("新建便贴")
-
-            Spacer(minLength: 0)
+            .padding(.vertical, 2)
         }
-        .frame(width: 94, alignment: .leading)
+        .frame(width: 88, height: 320, alignment: .leading)
     }
 
     // MARK: - Header
@@ -532,46 +500,6 @@ struct ContentView: View {
     }
 }
 
-private struct EdgeTabShape: InsettableShape {
-    var chamfer: CGFloat
-    var insetAmount: CGFloat = 0
-
-    func path(in rect: CGRect) -> Path {
-        let rect = rect.insetBy(dx: insetAmount, dy: insetAmount)
-        let cut = min(chamfer, rect.height / 2, rect.width / 3)
-
-        var path = Path()
-        path.move(to: CGPoint(x: rect.minX, y: rect.minY))
-        path.addLine(to: CGPoint(x: rect.maxX - cut, y: rect.minY))
-        path.addLine(to: CGPoint(x: rect.maxX, y: rect.minY + cut))
-        path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY - cut))
-        path.addLine(to: CGPoint(x: rect.maxX - cut, y: rect.maxY))
-        path.addLine(to: CGPoint(x: rect.minX, y: rect.maxY))
-        path.closeSubpath()
-        return path
-    }
-
-    func inset(by amount: CGFloat) -> some InsettableShape {
-        var shape = self
-        shape.insetAmount += amount
-        return shape
-    }
-}
-
-private struct TabTexture: View {
-    var body: some View {
-        Canvas { context, size in
-            var path = Path()
-            let spacing: CGFloat = 8
-            for offset in stride(from: -size.height, through: size.width, by: spacing) {
-                path.move(to: CGPoint(x: offset, y: size.height))
-                path.addLine(to: CGPoint(x: offset + size.height, y: 0))
-            }
-            context.stroke(path, with: .color(Theme.tabBorder.opacity(0.025)), lineWidth: 0.6)
-        }
-    }
-}
-
 private struct BookmarkButton: View {
     let page: TodoPage
     let isActive: Bool
@@ -586,50 +514,36 @@ private struct BookmarkButton: View {
         String(displayTitle.prefix(2))
     }
 
-    private var tabGradient: LinearGradient {
-        LinearGradient(
-            colors: isActive ? [Theme.tabActiveTop, Theme.tabActiveBottom] : [Theme.tabInactiveTop, Theme.tabInactiveBottom],
-            startPoint: .top,
-            endPoint: .bottom
-        )
-    }
-
     var body: some View {
         Button(action: action) {
-            HStack(spacing: 0) {
+            HStack(spacing: 6) {
+                if isActive {
+                    Capsule()
+                        .fill(Theme.brand.opacity(0.78))
+                        .frame(width: 3, height: 22)
+                }
+
                 Text(shortTitle)
-                    .font(.system(size: isActive ? 18 : 17, weight: .bold, design: .rounded))
+                    .font(.system(size: 15, weight: isActive ? .semibold : .medium, design: .rounded))
                     .lineLimit(1)
                     .minimumScaleFactor(0.78)
-                    .padding(.leading, 29)
-                    .padding(.trailing, 17)
+                    .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .frame(width: isActive ? 104 : 96, height: isActive ? 58 : 54, alignment: .leading)
-            .contentShape(EdgeTabShape(chamfer: 12))
+            .padding(.horizontal, isActive ? 10 : 13)
+            .frame(width: isActive ? 84 : 78, height: 44, alignment: .leading)
+            .contentShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
         }
         .buttonStyle(.plain)
-        .foregroundStyle(isActive ? Color(red: 0.16, green: 0.10, blue: 0.05) : Theme.tabText.opacity(0.84))
+        .foregroundStyle(isActive ? Theme.tabText : Theme.textSecondary)
         .background(
-            EdgeTabShape(chamfer: 12)
-                .fill(tabGradient)
-                .shadow(color: .black.opacity(isActive ? 0.24 : 0.16), radius: isActive ? 18 : 13, x: 5, y: 8)
-        )
-        .overlay(TabTexture().clipShape(EdgeTabShape(chamfer: 12)).allowsHitTesting(false))
-        .overlay(
-            EdgeTabShape(chamfer: 12)
-                .strokeBorder(Theme.tabBorder.opacity(isActive ? 0.68 : 0.38), lineWidth: isActive ? 1.4 : 1.0)
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .fill(isActive ? Theme.tabActiveSurface : Theme.tabInactiveSurface)
+                .shadow(color: .black.opacity(isActive ? 0.12 : 0.06), radius: isActive ? 10 : 6, x: 1, y: 4)
         )
         .overlay(
-            EdgeTabShape(chamfer: 12)
-                .strokeBorder(Color.white.opacity(isActive ? 0.34 : 0.52), lineWidth: 0.8)
-                .padding(3)
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .strokeBorder(isActive ? Theme.brand.opacity(0.25) : Theme.tabBorder, lineWidth: 1)
         )
-        .overlay(alignment: .leading) {
-            Rectangle()
-                .fill(Theme.tabBorder.opacity(isActive ? 0.26 : 0.16))
-                .frame(width: 6)
-                .padding(.vertical, 5)
-        }
         .help(displayTitle)
         .zIndex(isActive ? 1 : 0)
     }
@@ -642,42 +556,23 @@ private struct GhostBookmarkButton: View {
     var body: some View {
         Button(action: action) {
             Text(title)
-                .font(.system(size: 17, weight: .bold, design: .rounded))
+                .font(.system(size: 15, weight: .medium, design: .rounded))
                 .lineLimit(1)
-                .padding(.leading, 29)
-                .padding(.trailing, 16)
-                .frame(width: 96, height: 54, alignment: .leading)
-                .contentShape(EdgeTabShape(chamfer: 12))
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, 13)
+                .frame(width: 78, height: 42, alignment: .leading)
+                .contentShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
         }
         .buttonStyle(.plain)
-        .foregroundStyle(Theme.tabText.opacity(0.84))
+        .foregroundStyle(Theme.textSecondary)
         .background(
-            EdgeTabShape(chamfer: 12)
-                .fill(
-                    LinearGradient(
-                        colors: [Theme.tabInactiveTop, Theme.tabInactiveBottom],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                )
-                .shadow(color: .black.opacity(0.16), radius: 13, x: 5, y: 8)
-        )
-        .overlay(TabTexture().clipShape(EdgeTabShape(chamfer: 12)).allowsHitTesting(false))
-        .overlay(
-            EdgeTabShape(chamfer: 12)
-                .strokeBorder(Theme.tabBorder.opacity(0.38), lineWidth: 1)
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .fill(Theme.tabInactiveSurface.opacity(0.62))
         )
         .overlay(
-            EdgeTabShape(chamfer: 12)
-                .strokeBorder(Color.white.opacity(0.52), lineWidth: 0.8)
-                .padding(3)
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .strokeBorder(Theme.tabBorder, style: StrokeStyle(lineWidth: 1, dash: [3, 3]))
         )
-        .overlay(alignment: .leading) {
-            Rectangle()
-                .fill(Theme.tabBorder.opacity(0.16))
-                .frame(width: 6)
-                .padding(.vertical, 5)
-        }
         .help(title)
     }
 }
