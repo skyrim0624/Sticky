@@ -59,6 +59,7 @@ private enum Theme {
 
 struct ContentView: View {
     @ObservedObject var store: TodoStore
+    let onInteractionChange: (Bool) -> Void
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var newTodoText = ""
     @FocusState private var inputFocused: Bool
@@ -70,6 +71,12 @@ struct ContentView: View {
     @State private var isEditingPageTitle = false
     @State private var pageTitleText = ""
     @FocusState private var pageTitleFocused: Bool
+    @State private var rowEditorFocused = false
+
+    init(store: TodoStore, onInteractionChange: @escaping (Bool) -> Void = { _ in }) {
+        self._store = ObservedObject(wrappedValue: store)
+        self.onInteractionChange = onInteractionChange
+    }
 
     private var pending: [TodoItem] { store.todos.filter { !$0.completed } }
     private var completed: [TodoItem] { store.todos.filter { $0.completed } }
@@ -102,7 +109,14 @@ struct ContentView: View {
             dragAccumulated = 0
             isEditingPageTitle = false
             pageTitleText = store.activePageTitle
+            rowEditorFocused = false
+            publishInteractionState()
         }
+        .onChange(of: inputFocused) { publishInteractionState() }
+        .onChange(of: pageTitleFocused) { publishInteractionState() }
+        .onChange(of: draggingId) { publishInteractionState() }
+        .onChange(of: rowEditorFocused) { publishInteractionState() }
+        .onDisappear { onInteractionChange(false) }
     }
 
     private var outerWindow: some View {
@@ -175,16 +189,33 @@ struct ContentView: View {
             Spacer()
 
             progressRing
-            Text("\(completed.count)/\(max(store.todos.count, 1))")
+            Text("\(completed.count)/\(store.todos.count)")
                 .font(.system(size: 14, weight: .medium, design: .rounded))
                 .foregroundStyle(Theme.textSecondary)
 
-            Image(systemName: "ellipsis")
-                .font(.system(size: 13, weight: .bold))
-                .foregroundStyle(Theme.textSecondary)
-                .frame(width: 30, height: 30)
-                .background(Circle().fill(Color.white.opacity(0.58)))
-                .overlay(Circle().stroke(Color.primary.opacity(0.08), lineWidth: 0.8))
+            if store.canUndoDelete {
+                Text("已删除")
+                    .font(.system(size: 11, weight: .medium, design: .rounded))
+                    .foregroundStyle(Theme.textSecondary)
+
+                Button("撤销") {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.82)) {
+                        store.undoLastDelete()
+                    }
+                }
+                .buttonStyle(.plain)
+                .font(.system(size: 12, weight: .semibold, design: .rounded))
+                .foregroundStyle(Theme.brand)
+                .help("恢复刚刚删除的待办")
+            }
+
+            if let syncErrorMessage = store.syncErrorMessage {
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(.orange)
+                    .frame(width: 22, height: 22)
+                    .help(syncErrorMessage)
+            }
         }
         .padding(.horizontal, 24)
         .padding(.top, 15)
@@ -379,49 +410,55 @@ struct ContentView: View {
             store: store,
             priorityColor: Theme.priorityColor(index: pendingIndex, total: max(pending.count, 1)),
             isDragging: draggingId == item.id,
-            showGrip: false,
+            showGrip: !item.completed,
             badgeText: meta.badge,
             isStarred: meta.starred,
-            onComplete: celebrateCompletion
+            onComplete: celebrateCompletion,
+            onDragChanged: { value in
+                handleDrag(value, for: item)
+            },
+            onDragEnded: finishDrag,
+            onInteractionChange: { isFocused in
+                rowEditorFocused = isFocused
+            }
         )
-        .simultaneousGesture(
-            DragGesture(minimumDistance: 5, coordinateSpace: .global)
-                .onChanged { value in
-                    if draggingId == nil {
-                        draggingId = item.id
-                        dragAccumulated = 0
-                    }
-                    var effective = value.translation.height - dragAccumulated
-                    let rowH: CGFloat = 44
+    }
 
-                    while true {
-                        let currentPending = store.todos.filter { !$0.completed }
-                        guard let curIndex = currentPending.firstIndex(where: { $0.id == item.id }) else { break }
+    private func handleDrag(_ value: DragGesture.Value, for item: TodoItem) {
+        if draggingId == nil {
+            draggingId = item.id
+            dragAccumulated = 0
+        }
+        var effective = value.translation.height - dragAccumulated
+        let rowH: CGFloat = 44
 
-                        if effective > rowH * 0.55 && curIndex < currentPending.count - 1 {
-                            withAnimation(.spring(response: 0.25, dampingFraction: 0.75)) {
-                                store.moveDown(item)
-                            }
-                            dragAccumulated += rowH
-                            effective -= rowH
-                        } else if effective < -rowH * 0.55 && curIndex > 0 {
-                            withAnimation(.spring(response: 0.25, dampingFraction: 0.75)) {
-                                store.moveUp(item)
-                            }
-                            dragAccumulated -= rowH
-                            effective += rowH
-                        } else {
-                            break
-                        }
-                    }
+        while true {
+            let currentPending = store.todos.filter { !$0.completed }
+            guard let currentIndex = currentPending.firstIndex(where: { $0.id == item.id }) else { break }
+
+            if effective > rowH * 0.55 && currentIndex < currentPending.count - 1 {
+                withAnimation(.spring(response: 0.25, dampingFraction: 0.75)) {
+                    store.moveDown(item)
                 }
-                .onEnded { _ in
-                    withAnimation(.easeOut(duration: 0.2)) {
-                        draggingId = nil
-                        dragAccumulated = 0
-                    }
+                dragAccumulated += rowH
+                effective -= rowH
+            } else if effective < -rowH * 0.55 && currentIndex > 0 {
+                withAnimation(.spring(response: 0.25, dampingFraction: 0.75)) {
+                    store.moveUp(item)
                 }
-        )
+                dragAccumulated -= rowH
+                effective += rowH
+            } else {
+                break
+            }
+        }
+    }
+
+    private func finishDrag() {
+        withAnimation(.easeOut(duration: 0.2)) {
+            draggingId = nil
+            dragAccumulated = 0
+        }
     }
 
     private func rowMeta(index: Int, completed: Bool) -> (badge: String, starred: Bool) {
@@ -512,6 +549,10 @@ struct ContentView: View {
             store.add(trimmed)
         }
         newTodoText = ""
+    }
+
+    private func publishInteractionState() {
+        onInteractionChange(inputFocused || pageTitleFocused || rowEditorFocused || draggingId != nil)
     }
 }
 
@@ -676,6 +717,9 @@ struct TodoRowContent: View {
     let badgeText: String
     let isStarred: Bool
     let onComplete: (() -> Void)?
+    let onDragChanged: ((DragGesture.Value) -> Void)?
+    let onDragEnded: (() -> Void)?
+    let onInteractionChange: (Bool) -> Void
     @State private var isHovering = false
     @State private var isExpanded = false
     @State private var noteText = ""
@@ -763,6 +807,8 @@ struct TodoRowContent: View {
                         .animation(.spring(response: 0.4, dampingFraction: 0.7), value: item.completed)
                 }
 
+                noteChevron
+
                 Text(badgeText)
                     .font(.system(size: 11, weight: .regular, design: .rounded))
                     .foregroundStyle(Theme.tagText)
@@ -781,6 +827,20 @@ struct TodoRowContent: View {
                     .font(.system(size: 16, weight: .regular))
                     .foregroundStyle(isStarred ? Theme.starOn : Theme.starOff)
                     .frame(width: 20, height: 22)
+
+                if showGrip {
+                    Image(systemName: "line.3.horizontal")
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundStyle(Theme.textTertiary)
+                        .frame(width: 16, height: 24)
+                        .contentShape(Rectangle())
+                        .gesture(
+                            DragGesture(minimumDistance: 5, coordinateSpace: .global)
+                                .onChanged { value in onDragChanged?(value) }
+                                .onEnded { _ in onDragEnded?() }
+                        )
+                        .help("拖动排序")
+                }
 
                 if isHovering {
                     Image(systemName: "xmark")
@@ -823,6 +883,13 @@ struct TodoRowContent: View {
         .onChange(of: item.note) {
             if !noteFocused { noteText = item.note }
         }
+        .onChange(of: titleFocused) {
+            onInteractionChange(titleFocused || noteFocused)
+        }
+        .onChange(of: noteFocused) {
+            onInteractionChange(titleFocused || noteFocused)
+        }
+        .onDisappear { onInteractionChange(false) }
     }
 
     private var noteChevron: some View {
@@ -870,9 +937,10 @@ struct TodoRowContent: View {
                 .padding(.leading, 36)
                 .padding(.trailing, 8)
                 .onChange(of: noteFocused) {
-                    if !noteFocused {
-                        store.updateNote(item, note: noteText)
-                    }
+                    onInteractionChange(titleFocused || noteFocused)
+                }
+                .onChange(of: noteText) {
+                    store.updateNote(item, note: noteText)
                 }
 
             if noteText.isEmpty && !noteFocused {

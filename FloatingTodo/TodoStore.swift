@@ -1,18 +1,26 @@
 import Foundation
 import Combine
+import SwiftUI
 
 class TodoStore: ObservableObject {
     @Published var pages: [TodoPage] = []
     @Published var activePageId: UUID?
+    @Published private(set) var syncErrorMessage: String?
+    @Published private(set) var canUndoDelete = false
 
     private let jsonURL: URL
-    private let mdPath = "/Users/andreas/cmi社区知识库/CMI/Obsidian sticker.md"
+    private let backupURL: URL
+    private let markdownURL: URL
+    private var lastDeletedTodo: DeletedTodo?
+    private var undoWorkItem: DispatchWorkItem?
 
-    init() {
-        let dir = FileManager.default.homeDirectoryForCurrentUser
+    init(storageDirectory: URL? = nil, markdownURL: URL? = nil) {
+        let dir = storageDirectory ?? FileManager.default.homeDirectoryForCurrentUser
             .appendingPathComponent(".floating-todo", isDirectory: true)
         try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         self.jsonURL = dir.appendingPathComponent("todos.json")
+        self.backupURL = dir.appendingPathComponent("todos.json.bak")
+        self.markdownURL = markdownURL ?? Self.markdownURL(in: dir)
         load()
     }
 
@@ -53,9 +61,30 @@ class TodoStore: ObservableObject {
     }
 
     func delete(_ item: TodoItem) {
+        var didDelete = false
         updateActivePage { page in
-            page.todos.removeAll { $0.id == item.id }
+            guard let index = page.todos.firstIndex(where: { $0.id == item.id }) else { return }
+            lastDeletedTodo = DeletedTodo(pageId: page.id, item: page.todos[index], index: index)
+            page.todos.remove(at: index)
+            didDelete = true
         }
+        if didDelete {
+            scheduleUndoExpiry()
+        }
+    }
+
+    func undoLastDelete() {
+        guard let deleted = lastDeletedTodo,
+              let pageIndex = pages.firstIndex(where: { $0.id == deleted.pageId }) else {
+            clearUndoState()
+            return
+        }
+
+        let insertionIndex = min(deleted.index, pages[pageIndex].todos.count)
+        pages[pageIndex].todos.insert(deleted.item, at: insertionIndex)
+        activePageId = pages[pageIndex].id
+        clearUndoState()
+        save()
     }
 
     func move(item: TodoItem, to target: TodoItem) {
@@ -137,25 +166,12 @@ class TodoStore: ObservableObject {
             normalizePages()
             return
         }
-        do {
-            let data = try Data(contentsOf: jsonURL)
-            let decoder = JSONDecoder()
-            decoder.dateDecodingStrategy = .iso8601
-            if let workspace = try? decoder.decode(TodoWorkspace.self, from: data) {
-                pages = workspace.pages
-                activePageId = workspace.activePageId
-                normalizePages()
-                return
-            }
 
-            let legacyTodos = try decoder.decode([TodoItem].self, from: data)
-            let page = TodoPage(title: "待办事项", todos: legacyTodos)
-            pages = [page]
-            activePageId = page.id
-            performSave()
+        do {
+            try applyStoredData(from: jsonURL)
         } catch {
             print("Failed to load todos: \(error)")
-            normalizePages()
+            loadBackup()
         }
     }
 
@@ -184,50 +200,44 @@ class TodoStore: ObservableObject {
             encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
             let workspace = TodoWorkspace(activePageId: activePageId, pages: pages)
             let data = try encoder.encode(workspace)
+            backupCurrentDataIfNeeded()
             try data.write(to: jsonURL, options: .atomic)
         } catch {
             print("Failed to save JSON: \(error)")
+            publishSyncError("本地待办保存失败")
+            return
         }
 
-        // Sync Obsidian markdown
         syncMarkdown()
     }
 
     private func syncMarkdown() {
+        do {
+            try FileManager.default.createDirectory(
+                at: markdownURL.deletingLastPathComponent(),
+                withIntermediateDirectories: true
+            )
+            try markdownContent().write(to: markdownURL, atomically: true, encoding: .utf8)
+            publishSyncError(nil)
+        } catch {
+            print("Failed to sync Obsidian markdown: \(error)")
+            publishSyncError("Obsidian 同步失败")
+        }
+    }
+
+    func markdownContent() -> String {
         var lines: [String] = ["# Floating Todo", ""]
 
         for page in pages {
             lines.append("## \(displayTitle(for: page))")
             lines.append("")
 
-            let pending = page.todos.filter { !$0.completed }
-            let done = page.todos.filter { $0.completed }
-
-            for item in pending {
-                lines.append("- [ ] \(item.text)")
-                if !item.note.isEmpty {
-                    // 将注释以缩进块引用写入，Obsidian 渲染友好
-                    for noteLine in item.note.components(separatedBy: "\n") {
-                        lines.append("    > \(noteLine)")
-                    }
-                }
-            }
-            for item in done {
-                lines.append("- [x] \(item.text)")
-                if !item.note.isEmpty {
-                    for noteLine in item.note.components(separatedBy: "\n") {
-                        lines.append("    > \(noteLine)")
-                    }
-                }
-            }
-
+            appendMarkdown(for: page.todos.filter { !$0.completed }, checked: false, to: &lines)
+            appendMarkdown(for: page.todos.filter { $0.completed }, checked: true, to: &lines)
             lines.append("")
         }
 
-        let content = lines.joined(separator: "\n")
-        let dirPath = (mdPath as NSString).deletingLastPathComponent
-        try? FileManager.default.createDirectory(atPath: dirPath, withIntermediateDirectories: true)
-        try? content.write(toFile: mdPath, atomically: true, encoding: .utf8)
+        return lines.joined(separator: "\n")
     }
 
     private func updateActivePage(_ update: (inout TodoPage) -> Void) {
@@ -255,9 +265,125 @@ class TodoStore: ObservableObject {
         let trimmed = page.title.trimmingCharacters(in: .whitespacesAndNewlines)
         return trimmed.isEmpty ? "未命名" : trimmed
     }
+
+    private func appendMarkdown(for items: [TodoItem], checked: Bool, to lines: inout [String]) {
+        for item in items {
+            lines.append("- [\(checked ? "x" : " ")] \(item.text)")
+            if !item.note.isEmpty {
+                for noteLine in item.note.components(separatedBy: "\n") {
+                    lines.append("    > \(noteLine)")
+                }
+            }
+        }
+    }
+
+    private func applyStoredData(from url: URL) throws {
+        let data = try Data(contentsOf: url)
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+
+        if let workspace = try? decoder.decode(TodoWorkspace.self, from: data) {
+            pages = workspace.pages
+            activePageId = workspace.activePageId
+            normalizePages()
+            return
+        }
+
+        let legacyTodos = try decoder.decode([TodoItem].self, from: data)
+        let page = TodoPage(title: "待办事项", todos: legacyTodos)
+        pages = [page]
+        activePageId = page.id
+        performSave()
+    }
+
+    private func loadBackup() {
+        guard FileManager.default.fileExists(atPath: backupURL.path) else {
+            publishSyncError("本地数据无法读取")
+            normalizePages()
+            return
+        }
+
+        do {
+            try applyStoredData(from: backupURL)
+            publishSyncError("主数据损坏，已使用最近备份")
+        } catch {
+            print("Failed to load backup todos: \(error)")
+            publishSyncError("本地数据和备份都无法读取")
+            normalizePages()
+        }
+    }
+
+    private func backupCurrentDataIfNeeded() {
+        guard FileManager.default.fileExists(atPath: jsonURL.path) else { return }
+        guard let data = try? Data(contentsOf: jsonURL),
+              (try? JSONSerialization.jsonObject(with: data)) != nil else {
+            return
+        }
+
+        do {
+            if FileManager.default.fileExists(atPath: backupURL.path) {
+                try FileManager.default.removeItem(at: backupURL)
+            }
+            try FileManager.default.copyItem(at: jsonURL, to: backupURL)
+        } catch {
+            print("Failed to create todos backup: \(error)")
+        }
+    }
+
+    private func scheduleUndoExpiry() {
+        undoWorkItem?.cancel()
+        canUndoDelete = true
+
+        let workItem = DispatchWorkItem { [weak self] in
+            self?.clearUndoState()
+        }
+        undoWorkItem = workItem
+        DispatchQueue.main.asyncAfter(deadline: .now() + 6, execute: workItem)
+    }
+
+    private func clearUndoState() {
+        undoWorkItem?.cancel()
+        undoWorkItem = nil
+        lastDeletedTodo = nil
+        canUndoDelete = false
+    }
+
+    private func publishSyncError(_ message: String?) {
+        let update: () -> Void = { [weak self] in
+            guard let self else { return }
+            self.syncErrorMessage = message
+        }
+        if Thread.isMainThread {
+            update()
+        } else {
+            DispatchQueue.main.async(execute: update)
+        }
+    }
+
+    private static func markdownURL(in storageDirectory: URL) -> URL {
+        let configURL = storageDirectory.appendingPathComponent("config.json")
+        if let data = try? Data(contentsOf: configURL),
+           let configuration = try? JSONDecoder().decode(SyncConfiguration.self, from: data),
+           let path = configuration.obsidianMarkdownPath?.trimmingCharacters(in: .whitespacesAndNewlines),
+           !path.isEmpty {
+            return URL(fileURLWithPath: path)
+        }
+
+        return URL(fileURLWithPath: "/Users/andreas/cmi社区知识库/CMI/Obsidian sticker.md")
+    }
 }
 
 private struct TodoWorkspace: Codable {
     var activePageId: UUID?
     var pages: [TodoPage]
+}
+
+private struct SyncConfiguration: Codable {
+    var obsidianMarkdownPath: String?
+}
+
+private struct DeletedTodo {
+    let pageId: UUID
+    let item: TodoItem
+    let index: Int
 }

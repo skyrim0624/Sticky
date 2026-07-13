@@ -1,38 +1,87 @@
-# Obsidian-sticker
+# Floating To Do
 
-**Obsidian-sticker** 是一款深度集成在桌面环境与 Obsidian 中的原生极简待办事项（To-Do）悬浮应用。
+Floating To Do 是一个原生 macOS 菜单栏浮窗 App。它用于在终端、浏览器、编辑器或 Obsidian 之外快速记录待办，不占用 Dock，并将当前待办单向写入本地 Obsidian Markdown。
 
-## 🌟 核心理念与简介
+它不是 Obsidian 插件本体。当前项目的主体是 Swift 原生 App；`web/` 仅用于验证交互的浏览器原型。
 
-这个项目的核心目的是**方便我们在 `agent-obsidian` 体系下，以最轻量化的方式记录“待办事项”。**
-我们经常身处不同的上下文环境中（如终端、浏览器、或其他代码编辑器），传统的 Obsidian 笔记切换需要破坏当前的心流（Flow）。
+## 当前能力
 
-Obsidian-sticker 以一个常驻在 macOS 全局悬浮窗的形式出现，采用了顶级克制留白设计（Things 3 Vibe）。
-它能够确保待办事项以最“原生、通透、且不干扰视线”的形态常驻桌面，让你随时记录灵感或任务，同时它的底层依然能够轻松连击你的本地 Obsidian 的工作流进行同步。
+- 菜单栏左键呼出或隐藏浮窗，鼠标离开后自动收起。
+- 全局悬浮，支持多个桌面空间和全屏应用。
+- 多便贴页、双击编辑页面标题、快速添加待办。
+- 点击完成、双击编辑任务、拖拽抓手排序未完成任务。
+- 任务备注入口、完成音效和彩纸反馈。
+- 删除后可在 6 秒内撤销。
+- 菜单栏右键可复制当前工作区的 Markdown。
+- 本地 JSON 保存、最近一次成功数据备份和 Obsidian Markdown 单向同步。
 
-## 🎯 亮点特性 (Features)
-- 极致原生材质：硬编码亮色模式，纯白高透底漆搭配 `.ultraThinMaterial`，永远保持雪白晶莹的高级质感。
-- 轻量级交互：丝滑的连线删除小动画、1px 细边的打勾提示，没有花哨的功能，只有不可或缺的纯白描极简。
-- Obsidian 插件集成：配合 `floating-todo-launcher` 插件随 Obsidian 一同静默启动。不会污染 Dock 栏，只会成为桌面右侧不显眼却至关重要的便利贴（Sticker）。
+## 运行与安装
 
-## ⚙️ 编译运行 (Installation)
+开发运行：
 
-本项目基于 Swift 构建：
 ```bash
-git clone https://github.com/LovIce4ev/Obsidian-sticker.git
-cd Obsidian-sticker
 swift build
 ./.build/debug/FloatingTodo
 ```
-为了实现随 Obsidian 一起启动，您可以配置相关的 Obsidian 本地 Plugin (如上文提供的 JS launcher 代码即可)。
 
-## 📦 打包安装原生 macOS App
+安装原生 App：
 
 ```bash
 ./script/install_swift_app.sh
 ```
 
-这个脚本只打包 Swift 原生版：会先 release 构建，再生成 `dist/FloatingTodo.app`，替换 `/Applications/FloatingTodo.app` 前会校验目标 bundle id 必须是 `com.cmi.floatingtodo`，旧版本会移动到废纸篓备份。
+脚本会 release 构建并安装到 `/Applications/FloatingTodo.app`。替换前会核验 Bundle ID `com.cmi.floatingtodo`，旧版本会移入废纸篓备份。
+
+## 数据与 Obsidian 同步
+
+本地数据位于：
+
+```text
+~/.floating-todo/todos.json
+```
+
+每次成功保存前会保留上一份数据：
+
+```text
+~/.floating-todo/todos.json.bak
+```
+
+默认 Markdown 输出位置：
+
+```text
+/Users/andreas/cmi社区知识库/CMI/Obsidian sticker.md
+```
+
+同步为 App 到 Markdown 的单向写入。直接编辑 Markdown 不会回写到 App，也没有冲突合并能力。
+
+若 Obsidian 文件路径不同，可创建：
+
+```text
+~/.floating-todo/config.json
+```
+
+内容如下：
+
+```json
+{
+  "obsidianMarkdownPath": "/你的/Obsidian/仓库/Floating Todo.md"
+}
+```
+
+保存或同步失败时，浮窗顶部会显示数据提醒图标，菜单栏右键菜单会显示具体状态。主数据无法读取时，App 会尝试使用最近一次备份恢复。
+
+## Obsidian Launcher 边界
+
+README 历史上提到过 `floating-todo-launcher`。该 launcher 不在本仓库中，因此不能视为当前项目已交付的一部分。Floating To Do 可独立启动；如需随 Obsidian 启动，应在 launcher 所在项目中单独维护安装方式和路径。
+
+## 开发验证
+
+```bash
+swift build
+```
+
+当前本机 Command Line Tools 未提供 `XCTest` 或 Swift `Testing` 模块。数据层以一次性同模块验证程序覆盖了删除撤销、Markdown 写入和备份恢复；后续接入完整 Xcode 后，应将这三条验证迁移为正式单元测试。
 
 ## License
+
 MIT

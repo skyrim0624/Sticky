@@ -8,6 +8,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     private var isShowing = false
     private var isAnimating = false
+    private var isUserInteracting = false
 
     // Collapse polling
     private var collapsePoll: DispatchSourceTimer?
@@ -81,6 +82,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // Right click -> show menu
         if event?.type == .rightMouseUp {
             let menu = NSMenu()
+            menu.addItem(NSMenuItem(title: "复制待办 Markdown", action: #selector(copyMarkdown), keyEquivalent: "c"))
+            if let syncErrorMessage = store.syncErrorMessage {
+                let errorItem = NSMenuItem(title: syncErrorMessage, action: nil, keyEquivalent: "")
+                errorItem.isEnabled = false
+                menu.addItem(errorItem)
+            }
+            menu.addItem(NSMenuItem.separator())
             menu.addItem(NSMenuItem(title: "退出 FloatingTodo", action: #selector(quitApp), keyEquivalent: "q"))
             statusItem.menu = menu
             statusItem.button?.performClick(nil)
@@ -106,7 +114,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         // NOTE: 使用自定义 HostingView，让首次鼠标点击直接穿透到 SwiftUI 按钮，
         // 而不是被 nonActivatingPanel 的窗口激活行为吞掉
-        let hostView = ClickThroughHostingView(rootView: ContentView(store: store))
+        let hostView = ClickThroughHostingView(
+            rootView: ContentView(store: store, onInteractionChange: { [weak self] isInteracting in
+                self?.isUserInteracting = isInteracting
+            })
+        )
         let container = PanelContainerView(frame: NSRect(x: 0, y: 0, width: panelWidth, height: panelMaxHeight))
         container.addSubview(hostView)
         hostView.translatesAutoresizingMaskIntoConstraints = false
@@ -199,6 +211,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func checkMouse() {
         guard isShowing, !isAnimating else { return }
+        guard !isUserInteracting else {
+            outsideCount = 0
+            return
+        }
         let mouse = NSEvent.mouseLocation
         let frame = panel.frame
 
@@ -219,6 +235,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     // MARK: - Actions
+
+    @objc private func copyMarkdown() {
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        pasteboard.setString(store.markdownContent(), forType: .string)
+    }
 
     @objc private func quitApp() { NSApp.terminate(nil) }
 }
