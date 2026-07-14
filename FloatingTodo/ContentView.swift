@@ -609,16 +609,16 @@ private struct BookmarkButton: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.leading, isActive ? 19 : 13)
                 .padding(.trailing, 11)
-                .frame(width: isActive ? 100 : 72, height: isActive ? 52 : 34, alignment: .leading)
-                .contentShape(RoundedRectangle(cornerRadius: isActive ? 12 : 8, style: .continuous))
+                .frame(width: isActive ? 100 : 72, height: 34, alignment: .leading)
+                .contentShape(RoundedRectangle(cornerRadius: isActive ? 10 : 8, style: .continuous))
         }
         .buttonStyle(.plain)
         .foregroundStyle(isActive ? paperStyle.ink : paperStyle.ink.opacity(0.72))
         .background(
-            RoundedRectangle(cornerRadius: isActive ? 12 : 8, style: .continuous)
+            RoundedRectangle(cornerRadius: isActive ? 10 : 8, style: .continuous)
                 .fill(paperStyle.tab)
                 .overlay(alignment: .top) {
-                    RoundedRectangle(cornerRadius: isActive ? 12 : 8, style: .continuous)
+                    RoundedRectangle(cornerRadius: isActive ? 10 : 8, style: .continuous)
                         .fill(
                             LinearGradient(
                                 colors: [Color.white.opacity(0.16), Color.clear],
@@ -637,7 +637,7 @@ private struct BookmarkButton: View {
         .overlay(
             Group {
                 if isActive {
-                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
                         .strokeBorder(paperStyle.tabEdge.opacity(0.32), lineWidth: 0.9)
                 }
             }
@@ -646,7 +646,7 @@ private struct BookmarkButton: View {
             if isActive {
                 Capsule()
                     .fill(paperStyle.tabEdge.opacity(0.28))
-                    .frame(width: 3, height: 28)
+                    .frame(width: 3, height: 21)
                     .padding(.leading, 9)
             }
         }
