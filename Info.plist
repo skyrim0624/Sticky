@@ -3,7 +3,9 @@
 <plist version="1.0">
 <dict>
     <key>CFBundleName</key>
-    <string>FloatingTodo</string>
+    <string>Sticky</string>
+    <key>CFBundleDisplayName</key>
+    <string>Sticky</string>
     <key>CFBundleIconFile</key>
     <string>AppIcon</string>
     <key>CFBundleIdentifier</key>
