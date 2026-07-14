@@ -46,16 +46,60 @@ private struct NotebookPaperStyle {
 }
 
 private enum NotebookPaperPalette {
-    static func style(at pageIndex: Int) -> NotebookPaperStyle {
-        // 黄金角让新建页面自然分散到不同色相，不会出现固定五色循环。
-        let hue = (0.03 + Double(pageIndex) * 0.61803398875).truncatingRemainder(dividingBy: 1)
+    static let defaultHue = 0.57
+
+    static func style(hue: Double?) -> NotebookPaperStyle {
+        let hue = hue ?? defaultHue
         return NotebookPaperStyle(
-            paper: Color(hue: hue, saturation: 0.18, brightness: 0.96),
-            paperHighlight: Color(hue: hue, saturation: 0.07, brightness: 1.0),
-            tab: Color(hue: hue, saturation: 0.34, brightness: 0.88),
-            tabEdge: Color(hue: hue, saturation: 0.29, brightness: 0.52),
-            ink: Color(hue: hue, saturation: 0.24, brightness: 0.25)
+            paper: Color(hue: hue, saturation: 0.065, brightness: 0.99),
+            paperHighlight: Color(hue: hue, saturation: 0.018, brightness: 1.0),
+            tab: Color(hue: hue, saturation: 0.27, brightness: 0.88),
+            tabEdge: Color(hue: hue, saturation: 0.22, brightness: 0.47),
+            ink: Color(hue: hue, saturation: 0.18, brightness: 0.22)
         )
+    }
+}
+
+private struct PaperSurface: View {
+    let style: NotebookPaperStyle
+    let cornerRadius: CGFloat
+
+    var body: some View {
+        RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+            .fill(style.paper)
+            .overlay {
+                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                    .fill(
+                        LinearGradient(
+                            colors: [style.paperHighlight, style.paper],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+            }
+            .overlay {
+                PaperTextureOverlay()
+                    .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
+            }
+    }
+}
+
+private struct PaperTextureOverlay: View {
+    var body: some View {
+        if let textureURL = Bundle.module.url(
+            forResource: "paper-texture",
+            withExtension: "png",
+            subdirectory: "Resources"
+        ), let texture = NSImage(contentsOf: textureURL) {
+            Image(nsImage: texture)
+                .resizable(
+                    capInsets: EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0),
+                    resizingMode: .tile
+                )
+                .opacity(0.075)
+                .blendMode(.multiply)
+                .allowsHitTesting(false)
+        }
     }
 }
 
@@ -85,8 +129,8 @@ struct ContentView: View {
     private var pending: [TodoItem] { store.todos.filter { !$0.completed } }
     private var completed: [TodoItem] { store.todos.filter { $0.completed } }
     private var activePaperStyle: NotebookPaperStyle {
-        let activeIndex = store.pages.firstIndex(where: { $0.id == store.activePageId }) ?? 0
-        return NotebookPaperPalette.style(at: activeIndex)
+        let activePage = store.pages.first(where: { $0.id == store.activePageId }) ?? store.pages.first
+        return NotebookPaperPalette.style(hue: activePage?.colorHue)
     }
     private var displayPageTitle: String {
         let trimmed = store.activePageTitle.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -98,7 +142,7 @@ struct ContentView: View {
             outerWindow
 
             bookmarkEdge
-                .offset(x: 330, y: 86)
+                .offset(x: 330, y: 82)
 
             if showsCompletionConfetti && !reduceMotion {
                 CompletionConfettiView(seed: confettiBurst)
@@ -149,17 +193,7 @@ struct ContentView: View {
                 inputBar
             }
             .frame(width: 316, height: 330)
-            .background(
-                RoundedRectangle(cornerRadius: 22, style: .continuous)
-                    .fill(
-                        LinearGradient(
-                            colors: [activePaperStyle.paperHighlight, activePaperStyle.paper],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                    .shadow(color: activePaperStyle.tabEdge.opacity(0.08), radius: 10, x: 0, y: 5)
-            )
+            .background(PaperSurface(style: activePaperStyle, cornerRadius: 22))
             .overlay(
                 RoundedRectangle(cornerRadius: 22, style: .continuous)
                     .strokeBorder(activePaperStyle.tabEdge.opacity(0.14), lineWidth: 0.9)
@@ -167,21 +201,9 @@ struct ContentView: View {
             .padding(.top, 8)
         }
         .frame(width: 354, height: 410, alignment: .top)
-        .background(
-            ZStack {
-                RoundedRectangle(cornerRadius: 30, style: .continuous)
-                    .fill(Color(red: 0.96, green: 0.97, blue: 0.98).opacity(0.92))
-
-                LinearGradient(
-                    colors: [activePaperStyle.paperHighlight, activePaperStyle.paper],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-            }
-        )
+        .background(PaperSurface(style: activePaperStyle, cornerRadius: 30))
         .clipShape(RoundedRectangle(cornerRadius: 30, style: .continuous))
-        .shadow(color: .black.opacity(0.15), radius: 28, x: 0, y: 18)
-        .shadow(color: .black.opacity(0.07), radius: 8, x: 0, y: 3)
+        .shadow(color: Color.black.opacity(0.11), radius: 20, x: 5, y: 12)
         .overlay(
             RoundedRectangle(cornerRadius: 30, style: .continuous)
                 .strokeBorder(activePaperStyle.tabEdge.opacity(0.16), lineWidth: 1)
@@ -241,52 +263,78 @@ struct ContentView: View {
     // MARK: - Bookmark Sidebar
 
     private var bookmarkEdge: some View {
-        ScrollView(.vertical, showsIndicators: true) {
-            VStack(alignment: .leading, spacing: 0) {
+        ScrollView(.vertical, showsIndicators: false) {
+            ZStack(alignment: .topLeading) {
                 ForEach(Array(store.pages.enumerated()), id: \.element.id) { index, page in
                     BookmarkButton(
                         page: page,
                         isActive: page.id == store.activePageId,
-                        colorIndex: index,
-                        action: {
-                            withAnimation(.spring(response: 0.28, dampingFraction: 0.82)) {
-                                store.selectPage(page.id)
-                            }
-                        }
+                        action: { selectPage(page.id) }
                     )
+                    .offset(x: page.id == store.activePageId ? 0 : 14, y: CGFloat(index) * 31)
+                    .zIndex(page.id == store.activePageId ? 10 : Double(store.pages.count - index))
                 }
 
                 if store.pages.count < 2 {
-                    GhostBookmarkButton(title: "灵感", colorIndex: store.pages.count) {
-                        withAnimation(.spring(response: 0.32, dampingFraction: 0.82)) {
-                            store.addPage(title: "灵感")
-                        }
+                    GhostBookmarkButton(title: "灵感", hue: previewPageHue) {
+                        addPage(title: "灵感")
                     }
+                    .offset(x: 14, y: CGFloat(store.pages.count) * 31)
+                    .zIndex(1)
                 }
 
-                Button {
-                    withAnimation(.spring(response: 0.32, dampingFraction: 0.82)) {
-                        store.addPage()
-                    }
-                } label: {
-                    Image(systemName: "plus")
-                        .font(.system(size: 17, weight: .medium))
-                        .frame(width: 38, height: 38)
-                }
-                .buttonStyle(.plain)
-                .foregroundStyle(Theme.textSecondary)
-                .background(Circle().fill(activePaperStyle.paperHighlight))
-                .overlay(Circle().strokeBorder(activePaperStyle.tabEdge.opacity(0.28), lineWidth: 0.9))
-                .shadow(color: activePaperStyle.tabEdge.opacity(0.16), radius: 5, x: 1, y: 3)
-                .help("新建便贴")
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.leading, 10)
+                addPageButton
+                    .offset(x: 14, y: CGFloat(max(store.pages.count, 1)) * 31 + 6)
             }
-            .padding(.vertical, 2)
+            .frame(width: 100, height: tabStackHeight, alignment: .topLeading)
+            .animation(reduceMotion ? nil : .spring(response: 0.32, dampingFraction: 0.82), value: store.activePageId)
         }
-        .scrollIndicators(.visible, axes: .vertical)
-        .contentMargins(.trailing, 6, for: .scrollContent)
-        .frame(width: 96, height: 320, alignment: .leading)
+        .frame(width: 100, height: 320, alignment: .topLeading)
+    }
+
+    private var tabStackHeight: CGFloat {
+        max(76, CGFloat(max(store.pages.count, 1)) * 31 + 48)
+    }
+
+    private var previewPageHue: Double {
+        let usedHues = store.pages.compactMap(\.colorHue)
+        return (NotebookPaperPalette.defaultHue + Double(usedHues.count) * 0.61803398875)
+            .truncatingRemainder(dividingBy: 1)
+    }
+
+    private var addPageButton: some View {
+        Button { addPage(title: nil) } label: {
+            Image(systemName: "plus")
+                .font(.system(size: 15, weight: .medium))
+                .frame(width: 34, height: 34)
+                .contentShape(Circle())
+        }
+        .buttonStyle(.plain)
+        .foregroundStyle(activePaperStyle.ink.opacity(0.72))
+        .background(Circle().fill(activePaperStyle.paperHighlight))
+        .overlay(Circle().strokeBorder(activePaperStyle.tabEdge.opacity(0.20), lineWidth: 0.7))
+        .shadow(color: activePaperStyle.tabEdge.opacity(0.12), radius: 3, x: 1, y: 2)
+        .help("新建便贴")
+    }
+
+    private func selectPage(_ pageId: UUID) {
+        guard !reduceMotion else {
+            store.selectPage(pageId)
+            return
+        }
+        withAnimation(.spring(response: 0.32, dampingFraction: 0.82)) {
+            store.selectPage(pageId)
+        }
+    }
+
+    private func addPage(title: String?) {
+        guard !reduceMotion else {
+            store.addPage(title: title)
+            return
+        }
+        withAnimation(.spring(response: 0.32, dampingFraction: 0.82)) {
+            store.addPage(title: title)
+        }
     }
 
     // MARK: - Header
@@ -537,17 +585,10 @@ struct ContentView: View {
 private struct BookmarkButton: View {
     let page: TodoPage
     let isActive: Bool
-    let colorIndex: Int
     let action: () -> Void
 
     private var paperStyle: NotebookPaperStyle {
-        NotebookPaperPalette.style(at: colorIndex)
-    }
-
-    private var stackOffset: CGFloat {
-        // 轻微错位保持手帐页签的自然感，但不留出“牙齿状”空隙。
-        let offsets: [CGFloat] = [10, 6, 12, 8, 14, 5, 11, 7]
-        return isActive ? 0 : offsets[colorIndex % offsets.count]
+        NotebookPaperPalette.style(hue: page.colorHue)
     }
 
     private var displayTitle: String {
@@ -575,23 +616,31 @@ private struct BookmarkButton: View {
         .foregroundStyle(isActive ? paperStyle.ink : paperStyle.ink.opacity(0.72))
         .background(
             RoundedRectangle(cornerRadius: isActive ? 12 : 8, style: .continuous)
-                .fill(
-                    LinearGradient(
-                        colors: [paperStyle.tab, paperStyle.tab],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
+                .fill(paperStyle.tab)
+                .overlay(alignment: .top) {
+                    RoundedRectangle(cornerRadius: isActive ? 12 : 8, style: .continuous)
+                        .fill(
+                            LinearGradient(
+                                colors: [Color.white.opacity(0.16), Color.clear],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                        )
+                }
                 .shadow(
-                    color: paperStyle.tabEdge.opacity(isActive ? 0.26 : 0.17),
-                    radius: isActive ? 9 : 3,
+                    color: paperStyle.tabEdge.opacity(isActive ? 0.28 : 0.14),
+                    radius: isActive ? 8 : 2,
                     x: 2,
                     y: isActive ? 5 : 2
                 )
         )
         .overlay(
-            RoundedRectangle(cornerRadius: isActive ? 12 : 8, style: .continuous)
-                .strokeBorder(paperStyle.tabEdge.opacity(isActive ? 0.33 : 0.20), lineWidth: isActive ? 1 : 0.75)
+            Group {
+                if isActive {
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .strokeBorder(paperStyle.tabEdge.opacity(0.32), lineWidth: 0.9)
+                }
+            }
         )
         .overlay(alignment: .leading) {
             if isActive {
@@ -601,7 +650,6 @@ private struct BookmarkButton: View {
                     .padding(.leading, 9)
             }
         }
-        .offset(x: stackOffset)
         .help(displayTitle)
         .zIndex(isActive ? 10 : 1)
     }
@@ -609,11 +657,11 @@ private struct BookmarkButton: View {
 
 private struct GhostBookmarkButton: View {
     let title: String
-    let colorIndex: Int
+    let hue: Double
     let action: () -> Void
 
     private var paperStyle: NotebookPaperStyle {
-        NotebookPaperPalette.style(at: colorIndex)
+        NotebookPaperPalette.style(hue: hue)
     }
 
     var body: some View {
@@ -632,11 +680,7 @@ private struct GhostBookmarkButton: View {
             RoundedRectangle(cornerRadius: 8, style: .continuous)
                 .fill(paperStyle.tab)
         )
-        .overlay(
-            RoundedRectangle(cornerRadius: 8, style: .continuous)
-                .strokeBorder(paperStyle.tabEdge.opacity(0.20), style: StrokeStyle(lineWidth: 0.8, dash: [3, 3]))
-        )
-        .offset(x: 9)
+        .shadow(color: paperStyle.tabEdge.opacity(0.14), radius: 2, x: 1, y: 2)
         .help(title)
     }
 }

@@ -147,7 +147,10 @@ class TodoStore: ObservableObject {
     }
 
     func addPage(title: String? = nil) {
-        let page = TodoPage(title: title ?? "便贴 \(pages.count + 1)")
+        let page = TodoPage(
+            title: title ?? "便贴 \(pages.count + 1)",
+            colorHue: nextAvailablePageHue()
+        )
         pages.append(page)
         activePageId = page.id
         save()
@@ -169,6 +172,10 @@ class TodoStore: ObservableObject {
 
         do {
             try applyStoredData(from: jsonURL)
+            // 为旧 JSON 补齐色相后立即写回，之后改标题或调整顺序也不会换色。
+            if normalizePages() {
+                performSave()
+            }
         } catch {
             print("Failed to load todos: \(error)")
             loadBackup()
@@ -248,17 +255,34 @@ class TodoStore: ObservableObject {
         save()
     }
 
-    private func normalizePages() {
+    @discardableResult
+    private func normalizePages() -> Bool {
+        var didChange = false
         if pages.isEmpty {
-            let page = TodoPage()
+            let page = TodoPage(colorHue: nextAvailablePageHue())
             pages = [page]
             activePageId = page.id
-            return
+            return true
+        }
+
+        for index in pages.indices where pages[index].colorHue == nil {
+            pages[index].colorHue = nextAvailablePageHue(excluding: index)
+            didChange = true
         }
 
         if activePageId == nil || !pages.contains(where: { $0.id == activePageId }) {
             activePageId = pages[0].id
+            didChange = true
         }
+
+        return didChange
+    }
+
+    private func nextAvailablePageHue(excluding index: Int? = nil) -> Double {
+        let existingHues = pages.enumerated().compactMap { currentIndex, page in
+            currentIndex == index ? nil : page.colorHue
+        }
+        return PageColorDistributor.nextHue(avoiding: existingHues)
     }
 
     private func displayTitle(for page: TodoPage) -> String {
@@ -285,7 +309,6 @@ class TodoStore: ObservableObject {
         if let workspace = try? decoder.decode(TodoWorkspace.self, from: data) {
             pages = workspace.pages
             activePageId = workspace.activePageId
-            normalizePages()
             return
         }
 
@@ -293,7 +316,6 @@ class TodoStore: ObservableObject {
         let page = TodoPage(title: "待办事项", todos: legacyTodos)
         pages = [page]
         activePageId = page.id
-        performSave()
     }
 
     private func loadBackup() {
@@ -305,6 +327,9 @@ class TodoStore: ObservableObject {
 
         do {
             try applyStoredData(from: backupURL)
+            if normalizePages() {
+                performSave()
+            }
             publishSyncError("主数据损坏，已使用最近备份")
         } catch {
             print("Failed to load backup todos: \(error)")
@@ -370,6 +395,31 @@ class TodoStore: ObservableObject {
         }
 
         return URL(fileURLWithPath: "/Users/andreas/cmi社区知识库/CMI/Obsidian sticker.md")
+    }
+}
+
+private enum PageColorDistributor {
+    private static let firstHue = 0.57
+    private static let goldenAngle = 0.61803398875
+    private static let minimumDistance = 0.105
+
+    static func nextHue(avoiding existingHues: [Double]) -> Double {
+        for step in 0..<96 {
+            let candidate = (firstHue + Double(step) * goldenAngle)
+                .truncatingRemainder(dividingBy: 1)
+            if existingHues.allSatisfy({ circularDistance($0, candidate) >= minimumDistance }) {
+                return candidate
+            }
+        }
+
+        // 页面数量远超常见浮窗容量时，仍保持稳定且可预测的色相分布。
+        return (firstHue + Double(existingHues.count) * goldenAngle)
+            .truncatingRemainder(dividingBy: 1)
+    }
+
+    private static func circularDistance(_ lhs: Double, _ rhs: Double) -> Double {
+        let distance = abs(lhs - rhs)
+        return min(distance, 1 - distance)
     }
 }
 

@@ -31,12 +31,21 @@ struct TodoPage: Identifiable, Codable, Equatable {
     var title: String
     var todos: [TodoItem]
     var createdAt: Date
+    /// 页面身份色；可选值让历史 JSON 在第一次加载时平滑迁移。
+    var colorHue: Double?
 
-    init(id: UUID = UUID(), title: String = "待办事项", todos: [TodoItem] = [], createdAt: Date = Date()) {
+    init(
+        id: UUID = UUID(),
+        title: String = "待办事项",
+        todos: [TodoItem] = [],
+        createdAt: Date = Date(),
+        colorHue: Double? = nil
+    ) {
         self.id = id
         self.title = title
         self.todos = todos
         self.createdAt = createdAt
+        self.colorHue = colorHue
     }
 
     /// 兼容早期测试数据：createdAt 字段可能不存在
@@ -46,5 +55,6 @@ struct TodoPage: Identifiable, Codable, Equatable {
         title = try container.decode(String.self, forKey: .title)
         todos = try container.decode([TodoItem].self, forKey: .todos)
         createdAt = try container.decodeIfPresent(Date.self, forKey: .createdAt) ?? Date()
+        colorHue = try container.decodeIfPresent(Double.self, forKey: .colorHue)
     }
 }
