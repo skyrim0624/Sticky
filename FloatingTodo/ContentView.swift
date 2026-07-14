@@ -39,6 +39,7 @@ private enum Theme {
 
 private struct NotebookPaperStyle {
     let paper: Color
+    let paperHighlight: Color
     let tab: Color
     let tabEdge: Color
     let ink: Color
@@ -47,31 +48,36 @@ private struct NotebookPaperStyle {
 private enum NotebookPaperPalette {
     static let styles: [NotebookPaperStyle] = [
         NotebookPaperStyle(
-            paper: Color(red: 0.995, green: 0.955, blue: 0.948),
+            paper: Color(red: 0.98, green: 0.92, blue: 0.90),
+            paperHighlight: Color(red: 1.0, green: 0.975, blue: 0.96),
             tab: Color(red: 0.91, green: 0.72, blue: 0.70),
             tabEdge: Color(red: 0.54, green: 0.34, blue: 0.31),
             ink: Color(red: 0.29, green: 0.18, blue: 0.17)
         ),
         NotebookPaperStyle(
-            paper: Color(red: 0.945, green: 0.975, blue: 0.99),
+            paper: Color(red: 0.90, green: 0.95, blue: 0.98),
+            paperHighlight: Color(red: 0.965, green: 0.985, blue: 1.0),
             tab: Color(red: 0.67, green: 0.78, blue: 0.88),
             tabEdge: Color(red: 0.28, green: 0.40, blue: 0.52),
             ink: Color(red: 0.13, green: 0.23, blue: 0.32)
         ),
         NotebookPaperStyle(
-            paper: Color(red: 1.0, green: 0.985, blue: 0.93),
+            paper: Color(red: 1.0, green: 0.96, blue: 0.84),
+            paperHighlight: Color(red: 1.0, green: 0.99, blue: 0.93),
             tab: Color(red: 0.93, green: 0.82, blue: 0.56),
             tabEdge: Color(red: 0.53, green: 0.40, blue: 0.17),
             ink: Color(red: 0.29, green: 0.23, blue: 0.12)
         ),
         NotebookPaperStyle(
-            paper: Color(red: 0.95, green: 0.98, blue: 0.94),
+            paper: Color(red: 0.91, green: 0.96, blue: 0.89),
+            paperHighlight: Color(red: 0.97, green: 0.99, blue: 0.96),
             tab: Color(red: 0.65, green: 0.76, blue: 0.62),
             tabEdge: Color(red: 0.28, green: 0.40, blue: 0.24),
             ink: Color(red: 0.16, green: 0.25, blue: 0.14)
         ),
         NotebookPaperStyle(
-            paper: Color(red: 0.975, green: 0.955, blue: 0.99),
+            paper: Color(red: 0.94, green: 0.90, blue: 0.98),
+            paperHighlight: Color(red: 0.985, green: 0.97, blue: 1.0),
             tab: Color(red: 0.76, green: 0.66, blue: 0.84),
             tabEdge: Color(red: 0.40, green: 0.29, blue: 0.50),
             ink: Color(red: 0.23, green: 0.16, blue: 0.31)
@@ -177,7 +183,7 @@ struct ContentView: View {
                 RoundedRectangle(cornerRadius: 22, style: .continuous)
                     .fill(
                         LinearGradient(
-                            colors: [activePaperStyle.paper.opacity(0.98), Color.white.opacity(0.56)],
+                            colors: [activePaperStyle.paperHighlight, activePaperStyle.paper],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
                         )
@@ -197,7 +203,7 @@ struct ContentView: View {
                     .fill(Color(red: 0.96, green: 0.97, blue: 0.98).opacity(0.92))
 
                 LinearGradient(
-                    colors: [activePaperStyle.paper.opacity(0.96), activePaperStyle.paper.opacity(0.72)],
+                    colors: [activePaperStyle.paperHighlight, activePaperStyle.paper],
                     startPoint: .topLeading,
                     endPoint: .bottomTrailing
                 )
@@ -266,7 +272,7 @@ struct ContentView: View {
 
     private var bookmarkEdge: some View {
         ScrollView(.vertical, showsIndicators: true) {
-            VStack(spacing: -7) {
+            VStack(spacing: 3) {
                 ForEach(store.pages) { page in
                     BookmarkButton(
                         page: page,
@@ -298,7 +304,7 @@ struct ContentView: View {
                 }
                 .buttonStyle(.plain)
                 .foregroundStyle(Theme.textSecondary)
-                .background(Circle().fill(activePaperStyle.paper.opacity(0.96)))
+                .background(Circle().fill(activePaperStyle.paperHighlight))
                 .overlay(Circle().strokeBorder(activePaperStyle.tabEdge.opacity(0.28), lineWidth: 0.9))
                 .shadow(color: activePaperStyle.tabEdge.opacity(0.16), radius: 5, x: 1, y: 3)
                 .help("新建便贴")
@@ -593,7 +599,7 @@ private struct BookmarkButton: View {
             RoundedRectangle(cornerRadius: isActive ? 12 : 8, style: .continuous)
                 .fill(
                     LinearGradient(
-                        colors: [paperStyle.tab.opacity(isActive ? 0.96 : 0.78), paperStyle.tab.opacity(isActive ? 0.82 : 0.64)],
+                        colors: [paperStyle.tab, paperStyle.tab],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     )
@@ -638,7 +644,7 @@ private struct GhostBookmarkButton: View {
         .foregroundStyle(Theme.textSecondary)
         .background(
             RoundedRectangle(cornerRadius: 8, style: .continuous)
-                .fill(Color(red: 0.84, green: 0.88, blue: 0.84).opacity(0.72))
+                .fill(Color(red: 0.84, green: 0.88, blue: 0.84))
         )
         .overlay(
             RoundedRectangle(cornerRadius: 8, style: .continuous)
