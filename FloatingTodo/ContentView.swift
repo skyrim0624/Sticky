@@ -43,6 +43,7 @@ private struct NotebookPaperStyle {
     let tab: Color
     let tabEdge: Color
     let ink: Color
+    let composerControl: Color
 }
 
 private enum NotebookPaperPalette {
@@ -55,7 +56,8 @@ private enum NotebookPaperPalette {
             paperHighlight: Color(hue: hue, saturation: 0.018, brightness: 1.0),
             tab: Color(hue: hue, saturation: 0.27, brightness: 0.88),
             tabEdge: Color(hue: hue, saturation: 0.22, brightness: 0.47),
-            ink: Color(hue: hue, saturation: 0.18, brightness: 0.22)
+            ink: Color(hue: hue, saturation: 0.18, brightness: 0.22),
+            composerControl: Color(hue: hue, saturation: 0.15, brightness: 0.91)
         )
     }
 }
@@ -515,41 +517,76 @@ struct ContentView: View {
     // MARK: - Input Bar
 
     private var inputBar: some View {
-        HStack(spacing: 10) {
+        HStack(spacing: 11) {
             Button(action: submitNewTodo) {
                 ZStack {
                     Circle()
-                        .fill(inputFocused ? Theme.accent.opacity(0.13) : Color.white.opacity(0.72))
-                        .animation(.easeOut(duration: 0.2), value: inputFocused)
+                        .fill(inputFocused ? activePaperStyle.tab : activePaperStyle.composerControl)
+
+                    Circle()
+                        .strokeBorder(Color.white.opacity(0.42), lineWidth: 0.9)
 
                     Image(systemName: "plus")
-                        .font(.system(size: 22, weight: .regular))
-                        .foregroundStyle(Theme.accent)
+                        .font(.system(size: 19, weight: .medium))
+                        .foregroundStyle(activePaperStyle.ink)
                 }
-                .frame(width: 38, height: 38)
+                .frame(width: 40, height: 40)
+                .shadow(
+                    color: activePaperStyle.tabEdge.opacity(inputFocused ? 0.24 : 0.16),
+                    radius: inputFocused ? 5 : 3,
+                    x: 0,
+                    y: 2
+                )
+                .animation(.easeOut(duration: 0.18), value: inputFocused)
             }
             .buttonStyle(.plain)
             .help("添加待办")
 
-            TextField("添加新待办…", text: $newTodoText)
+            TextField(
+                "",
+                text: $newTodoText,
+                prompt: Text("添加新待办…")
+                    .foregroundStyle(activePaperStyle.ink.opacity(0.42))
+            )
                 .textFieldStyle(.plain)
-                .font(.system(size: 14, weight: .regular, design: .rounded))
-                .foregroundStyle(Theme.textSecondary)
+                .font(.system(size: 15, weight: .medium, design: .rounded))
+                .foregroundStyle(activePaperStyle.ink)
                 .focused($inputFocused)
                 .onSubmit {
                     submitNewTodo()
                 }
 
             Image(systemName: "return")
-                .font(.system(size: 14, weight: .medium))
-                .foregroundStyle(Theme.textSecondary.opacity(0.62))
-                .padding(.trailing, 12)
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(activePaperStyle.ink.opacity(0.48))
+                .frame(width: 28, height: 24)
+                .background(
+                    RoundedRectangle(cornerRadius: 7, style: .continuous)
+                        .fill(activePaperStyle.paper)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 7, style: .continuous)
+                                .strokeBorder(activePaperStyle.tabEdge.opacity(0.14), lineWidth: 0.7)
+                        )
+                )
+                .padding(.trailing, 10)
         }
-        .frame(height: 44)
+        .frame(height: 48)
         .background(
             Capsule()
-                .fill(Color.white.opacity(0.66))
-                .overlay(Capsule().strokeBorder(Color.primary.opacity(0.08), lineWidth: 0.8))
+                .fill(activePaperStyle.paperHighlight)
+                .overlay(
+                    Capsule()
+                        .strokeBorder(
+                            activePaperStyle.tabEdge.opacity(inputFocused ? 0.30 : 0.15),
+                            lineWidth: inputFocused ? 1.0 : 0.8
+                        )
+                )
+                .overlay(alignment: .top) {
+                    Capsule()
+                        .strokeBorder(Color.white.opacity(0.52), lineWidth: 0.8)
+                        .padding(1)
+                }
+                .shadow(color: Color.black.opacity(0.045), radius: 3, x: 0, y: 2)
         )
         .padding(.horizontal, 18)
         .padding(.bottom, 14)
