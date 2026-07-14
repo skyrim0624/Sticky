@@ -23,10 +23,7 @@ private enum Theme {
     static let noteText = Color.primary.opacity(0.55)
     static let noteBg = Color.primary.opacity(0.025)
     static let noteBorder = Color.primary.opacity(0.06)
-    static let tabActiveSurface = Color(red: 0.91, green: 0.95, blue: 0.99)
-    static let tabInactiveSurface = Color.white.opacity(0.92)
-    static let tabText = Color(red: 0.18, green: 0.21, blue: 0.25)
-    static let tabBorder = Color(red: 0.52, green: 0.57, blue: 0.64).opacity(0.22)
+    static let tabText = Color(red: 0.20, green: 0.18, blue: 0.16)
     static let confettiColors: [Color] = [
         Color(red: 0.98, green: 0.24, blue: 0.31),
         Color(red: 1.00, green: 0.70, blue: 0.16),
@@ -36,6 +33,55 @@ private enum Theme {
         Color(red: 0.98, green: 0.38, blue: 0.74)
     ]
 
+}
+
+// MARK: - Notebook Paper Palette
+
+private struct NotebookPaperStyle {
+    let paper: Color
+    let tab: Color
+    let tabEdge: Color
+    let ink: Color
+}
+
+private enum NotebookPaperPalette {
+    static let styles: [NotebookPaperStyle] = [
+        NotebookPaperStyle(
+            paper: Color(red: 0.995, green: 0.955, blue: 0.948),
+            tab: Color(red: 0.91, green: 0.72, blue: 0.70),
+            tabEdge: Color(red: 0.54, green: 0.34, blue: 0.31),
+            ink: Color(red: 0.29, green: 0.18, blue: 0.17)
+        ),
+        NotebookPaperStyle(
+            paper: Color(red: 0.945, green: 0.975, blue: 0.99),
+            tab: Color(red: 0.67, green: 0.78, blue: 0.88),
+            tabEdge: Color(red: 0.28, green: 0.40, blue: 0.52),
+            ink: Color(red: 0.13, green: 0.23, blue: 0.32)
+        ),
+        NotebookPaperStyle(
+            paper: Color(red: 1.0, green: 0.985, blue: 0.93),
+            tab: Color(red: 0.93, green: 0.82, blue: 0.56),
+            tabEdge: Color(red: 0.53, green: 0.40, blue: 0.17),
+            ink: Color(red: 0.29, green: 0.23, blue: 0.12)
+        ),
+        NotebookPaperStyle(
+            paper: Color(red: 0.95, green: 0.98, blue: 0.94),
+            tab: Color(red: 0.65, green: 0.76, blue: 0.62),
+            tabEdge: Color(red: 0.28, green: 0.40, blue: 0.24),
+            ink: Color(red: 0.16, green: 0.25, blue: 0.14)
+        ),
+        NotebookPaperStyle(
+            paper: Color(red: 0.975, green: 0.955, blue: 0.99),
+            tab: Color(red: 0.76, green: 0.66, blue: 0.84),
+            tabEdge: Color(red: 0.40, green: 0.29, blue: 0.50),
+            ink: Color(red: 0.23, green: 0.16, blue: 0.31)
+        )
+    ]
+
+    static func style(for id: UUID) -> NotebookPaperStyle {
+        let seed = id.uuidString.unicodeScalars.reduce(0) { $0 + Int($1.value) }
+        return styles[seed % styles.count]
+    }
 }
 
 // MARK: - Main Content View
@@ -63,6 +109,9 @@ struct ContentView: View {
 
     private var pending: [TodoItem] { store.todos.filter { !$0.completed } }
     private var completed: [TodoItem] { store.todos.filter { $0.completed } }
+    private var activePaperStyle: NotebookPaperStyle {
+        NotebookPaperPalette.style(for: store.activePageId ?? store.pages.first?.id ?? UUID())
+    }
     private var displayPageTitle: String {
         let trimmed = store.activePageTitle.trimmingCharacters(in: .whitespacesAndNewlines)
         return trimmed.isEmpty ? "待办事项" : trimmed
@@ -126,12 +175,18 @@ struct ContentView: View {
             .frame(width: 316, height: 330)
             .background(
                 RoundedRectangle(cornerRadius: 22, style: .continuous)
-                    .fill(Color.white.opacity(0.96))
-                    .shadow(color: .white.opacity(0.55), radius: 0, x: 0, y: 1)
+                    .fill(
+                        LinearGradient(
+                            colors: [activePaperStyle.paper.opacity(0.98), Color.white.opacity(0.56)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .shadow(color: activePaperStyle.tabEdge.opacity(0.08), radius: 10, x: 0, y: 5)
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 22, style: .continuous)
-                    .strokeBorder(Color.white.opacity(0.72), lineWidth: 1)
+                    .strokeBorder(activePaperStyle.tabEdge.opacity(0.14), lineWidth: 0.9)
             )
             .padding(.top, 8)
         }
@@ -142,7 +197,7 @@ struct ContentView: View {
                     .fill(Color(red: 0.96, green: 0.97, blue: 0.98).opacity(0.92))
 
                 LinearGradient(
-                    colors: [Color.white.opacity(0.96), Color.white.opacity(0.78)],
+                    colors: [activePaperStyle.paper.opacity(0.96), activePaperStyle.paper.opacity(0.72)],
                     startPoint: .topLeading,
                     endPoint: .bottomTrailing
                 )
@@ -153,7 +208,7 @@ struct ContentView: View {
         .shadow(color: .black.opacity(0.07), radius: 8, x: 0, y: 3)
         .overlay(
             RoundedRectangle(cornerRadius: 30, style: .continuous)
-                .strokeBorder(Color.white.opacity(0.72), lineWidth: 1.2)
+                .strokeBorder(activePaperStyle.tabEdge.opacity(0.16), lineWidth: 1)
         )
     }
 
@@ -211,7 +266,7 @@ struct ContentView: View {
 
     private var bookmarkEdge: some View {
         ScrollView(.vertical, showsIndicators: true) {
-            VStack(spacing: 8) {
+            VStack(spacing: -7) {
                 ForEach(store.pages) { page in
                     BookmarkButton(
                         page: page,
@@ -243,9 +298,9 @@ struct ContentView: View {
                 }
                 .buttonStyle(.plain)
                 .foregroundStyle(Theme.textSecondary)
-                .background(Circle().fill(Color.white.opacity(0.86)))
-                .overlay(Circle().strokeBorder(Theme.tabBorder, lineWidth: 1))
-                .shadow(color: .black.opacity(0.07), radius: 6, x: 1, y: 3)
+                .background(Circle().fill(activePaperStyle.paper.opacity(0.96)))
+                .overlay(Circle().strokeBorder(activePaperStyle.tabEdge.opacity(0.28), lineWidth: 0.9))
+                .shadow(color: activePaperStyle.tabEdge.opacity(0.16), radius: 5, x: 1, y: 3)
                 .help("新建便贴")
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.leading, 10)
@@ -254,7 +309,7 @@ struct ContentView: View {
         }
         .scrollIndicators(.visible, axes: .vertical)
         .contentMargins(.trailing, 6, for: .scrollContent)
-        .frame(width: 94, height: 320, alignment: .leading)
+        .frame(width: 96, height: 320, alignment: .leading)
     }
 
     // MARK: - Header
@@ -507,6 +562,10 @@ private struct BookmarkButton: View {
     let isActive: Bool
     let action: () -> Void
 
+    private var paperStyle: NotebookPaperStyle {
+        NotebookPaperPalette.style(for: page.id)
+    }
+
     private var displayTitle: String {
         let trimmed = page.title.trimmingCharacters(in: .whitespacesAndNewlines)
         return trimmed.isEmpty ? "未命名" : trimmed
@@ -518,36 +577,46 @@ private struct BookmarkButton: View {
 
     var body: some View {
         Button(action: action) {
-            HStack(spacing: 6) {
-                if isActive {
-                    Capsule()
-                        .fill(Theme.brand.opacity(0.78))
-                        .frame(width: 3, height: 22)
-                }
-
-                Text(shortTitle)
-                    .font(.system(size: 15, weight: isActive ? .semibold : .medium, design: .rounded))
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.78)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-            }
-            .padding(.horizontal, isActive ? 10 : 13)
-            .frame(width: isActive ? 84 : 78, height: 44, alignment: .leading)
-            .contentShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+            Text(shortTitle)
+                .font(.system(size: isActive ? 15 : 12, weight: isActive ? .bold : .semibold, design: .rounded))
+                .lineLimit(1)
+                .minimumScaleFactor(0.78)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.leading, isActive ? 19 : 14)
+                .padding(.trailing, 11)
+                .frame(width: isActive ? 94 : 66, height: isActive ? 52 : 30, alignment: .leading)
+                .contentShape(RoundedRectangle(cornerRadius: isActive ? 12 : 8, style: .continuous))
         }
         .buttonStyle(.plain)
-        .foregroundStyle(isActive ? Theme.tabText : Theme.textSecondary)
+        .foregroundStyle(isActive ? paperStyle.ink : paperStyle.ink.opacity(0.72))
         .background(
-            RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .fill(isActive ? Theme.tabActiveSurface : Theme.tabInactiveSurface)
-                .shadow(color: .black.opacity(isActive ? 0.12 : 0.06), radius: isActive ? 10 : 6, x: 1, y: 4)
+            RoundedRectangle(cornerRadius: isActive ? 12 : 8, style: .continuous)
+                .fill(
+                    LinearGradient(
+                        colors: [paperStyle.tab.opacity(isActive ? 0.96 : 0.78), paperStyle.tab.opacity(isActive ? 0.82 : 0.64)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+                .shadow(
+                    color: paperStyle.tabEdge.opacity(isActive ? 0.26 : 0.17),
+                    radius: isActive ? 9 : 4,
+                    x: 2,
+                    y: isActive ? 5 : 3
+                )
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .strokeBorder(isActive ? Theme.brand.opacity(0.25) : Theme.tabBorder, lineWidth: 1)
+            RoundedRectangle(cornerRadius: isActive ? 12 : 8, style: .continuous)
+                .strokeBorder(paperStyle.tabEdge.opacity(isActive ? 0.33 : 0.20), lineWidth: isActive ? 1 : 0.75)
         )
+        .overlay(alignment: .leading) {
+            Capsule()
+                .fill(paperStyle.tabEdge.opacity(isActive ? 0.28 : 0.18))
+                .frame(width: isActive ? 3 : 2, height: isActive ? 28 : 16)
+                .padding(.leading, isActive ? 9 : 7)
+        }
         .help(displayTitle)
-        .zIndex(isActive ? 1 : 0)
+        .zIndex(isActive ? 10 : 1)
     }
 }
 
@@ -558,22 +627,22 @@ private struct GhostBookmarkButton: View {
     var body: some View {
         Button(action: action) {
             Text(title)
-                .font(.system(size: 15, weight: .medium, design: .rounded))
+                .font(.system(size: 12, weight: .semibold, design: .rounded))
                 .lineLimit(1)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, 13)
-                .frame(width: 78, height: 42, alignment: .leading)
-                .contentShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                .padding(.horizontal, 14)
+                .frame(width: 66, height: 30, alignment: .leading)
+                .contentShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
         }
         .buttonStyle(.plain)
         .foregroundStyle(Theme.textSecondary)
         .background(
-            RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .fill(Theme.tabInactiveSurface.opacity(0.62))
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                .fill(Color(red: 0.84, green: 0.88, blue: 0.84).opacity(0.72))
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .strokeBorder(Theme.tabBorder, style: StrokeStyle(lineWidth: 1, dash: [3, 3]))
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                .strokeBorder(Color.primary.opacity(0.16), style: StrokeStyle(lineWidth: 0.8, dash: [3, 3]))
         )
         .help(title)
     }

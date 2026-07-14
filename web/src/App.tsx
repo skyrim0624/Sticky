@@ -32,6 +32,8 @@ export function App() {
     [activePageId, pages]
   );
   const todos = activePage?.todos ?? [];
+  const activePageIndex = Math.max(pages.findIndex((page) => page.id === activePage?.id), 0);
+  const activePaperTone = paperToneFor(activePageIndex);
   const listTitle = activePage?.title ?? "待办事项";
   const pending = useMemo(() => todos.filter((todo) => !todo.completed), [todos]);
   const completed = useMemo(() => todos.filter((todo) => todo.completed), [todos]);
@@ -205,7 +207,7 @@ export function App() {
 
   return (
     <main className="app-shell">
-      <section className="todo-panel" aria-label="Floating Todo Web">
+      <section className="todo-panel" aria-label="Floating Todo Web" data-paper-tone={activePaperTone}>
         <div className="window-chrome">
           <div className="traffic-lights" aria-hidden="true">
             <span className="traffic-dot traffic-red" />
@@ -239,6 +241,7 @@ export function App() {
                 title={pageTitle}
                 aria-label={`切换到 ${pageTitle}`}
                 data-active={isActive}
+                data-paper-tone={paperToneFor(pages.indexOf(page))}
                 onClick={() => selectPage(page.id)}
               >
                 <span>{shortBookmarkTitle(pageTitle)}</span>
@@ -351,6 +354,10 @@ function updatePageTodos(page: TodoPage, update: (todos: TodoItem[]) => TodoItem
 
 function shortBookmarkTitle(title: string) {
   return Array.from(title).slice(0, 2).join("");
+}
+
+function paperToneFor(index: number) {
+  return ["rose", "blue", "yellow", "sage", "lavender"][index % 5];
 }
 
 function clamp(value: number, min: number, max: number) {
