@@ -780,13 +780,10 @@ struct TodoRowContent: View {
                         .font(.system(size: 14, weight: .medium, design: .rounded))
                         .foregroundStyle(Theme.text)
                         .focused($titleFocused)
-                        .onSubmit {
-                            isEditingTitle = false
-                        }
+                        .onSubmit(finishTitleEditing)
                         .onChange(of: titleFocused) {
                             if !titleFocused {
-                                isEditingTitle = false
-                                store.updateText(item, text: titleText)
+                                finishTitleEditing()
                             }
                         }
                 } else {
@@ -962,6 +959,19 @@ struct TodoRowContent: View {
         if !wasCompleted {
             onComplete?()
         }
+    }
+
+    private func finishTitleEditing() {
+        guard isEditingTitle else { return }
+
+        let trimmed = titleText.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !trimmed.isEmpty, trimmed != item.text {
+            store.updateText(item, text: trimmed)
+            // 标题编辑是用户明确提交的动作，不能等异步写回再让旧内容覆盖视图。
+            store.saveImmediately()
+        }
+
+        isEditingTitle = false
     }
 }
 
