@@ -22,8 +22,8 @@ body {
   min-height: 100vh;
   margin: 0;
   background:
-    linear-gradient(122deg, rgba(247, 224, 231, 0.88) 0%, rgba(247, 246, 252, 0.94) 48%, rgba(226, 240, 229, 0.88) 100%),
-    linear-gradient(180deg, #fbfafc 0%, #f0eff7 100%);
+    linear-gradient(122deg, #fbedf1 0%, #fffafb 52%, #f8eef2 100%),
+    #fffafb;
 }
 
 button,
@@ -78,30 +78,6 @@ button {
   border-radius: 999px;
   background: var(--paper-edge);
   pointer-events: none;
-}
-
-.todo-panel[data-paper-tone="blue"] {
-  --paper: #f4f5ff;
-  --paper-shadow: rgba(95, 103, 155, 0.15);
-  --paper-edge: rgba(79, 88, 143, 0.24);
-}
-
-.todo-panel[data-paper-tone="yellow"] {
-  --paper: #fff8eb;
-  --paper-shadow: rgba(150, 119, 67, 0.15);
-  --paper-edge: rgba(130, 99, 49, 0.22);
-}
-
-.todo-panel[data-paper-tone="sage"] {
-  --paper: #f1faf3;
-  --paper-shadow: rgba(75, 122, 93, 0.15);
-  --paper-edge: rgba(62, 105, 78, 0.22);
-}
-
-.todo-panel[data-paper-tone="lavender"] {
-  --paper: #faf3ff;
-  --paper-shadow: rgba(115, 83, 142, 0.15);
-  --paper-edge: rgba(100, 69, 127, 0.22);
 }
 
 .window-chrome {
@@ -213,30 +189,6 @@ button {
 
 .bookmark-tab {
   justify-items: start;
-}
-
-.bookmark-tab[data-paper-tone="blue"] {
-  --tab: #bec8f1;
-  --tab-ink: #313963;
-  --tab-edge: #6570aa;
-}
-
-.bookmark-tab[data-paper-tone="yellow"] {
-  --tab: #f1d99d;
-  --tab-ink: #58441f;
-  --tab-edge: #94743c;
-}
-
-.bookmark-tab[data-paper-tone="sage"] {
-  --tab: #b9d9bf;
-  --tab-ink: #2c4934;
-  --tab-edge: #5e906a;
-}
-
-.bookmark-tab[data-paper-tone="lavender"] {
-  --tab: #d8bce8;
-  --tab-ink: #493358;
-  --tab-edge: #7e5b94;
 }
 
 .bookmark-tab::before,

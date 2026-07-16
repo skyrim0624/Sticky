@@ -49,15 +49,15 @@ private struct NotebookPaperStyle {
 private enum NotebookPaperPalette {
     static let defaultHue = 0.57
 
-    static func style(hue: Double?) -> NotebookPaperStyle {
-        let hue = hue ?? defaultHue
+    // NOTE: 页面仍保存历史色相，避免触碰用户数据；视觉上统一使用固定粉白主题。
+    static func style(hue _: Double?) -> NotebookPaperStyle {
         return NotebookPaperStyle(
-            paper: Color(hue: hue, saturation: 0.11, brightness: 0.99),
-            paperHighlight: Color(hue: hue, saturation: 0.035, brightness: 1.0),
-            tab: Color(hue: hue, saturation: 0.34, brightness: 0.94),
-            tabEdge: Color(hue: hue, saturation: 0.24, brightness: 0.54),
-            ink: Color(hue: hue, saturation: 0.16, brightness: 0.25),
-            composerControl: Color(hue: hue, saturation: 0.19, brightness: 0.95)
+            paper: Color(red: 1.0, green: 0.957, blue: 0.965),
+            paperHighlight: Color(red: 1.0, green: 0.988, blue: 0.99),
+            tab: Color(red: 0.949, green: 0.741, blue: 0.796),
+            tabEdge: Color(red: 0.549, green: 0.353, blue: 0.412),
+            ink: Color(red: 0.322, green: 0.216, blue: 0.251),
+            composerControl: Color(red: 0.98, green: 0.925, blue: 0.94)
         )
     }
 }
