@@ -1,4 +1,7 @@
 :root {
+  --soft-accent: #7568c8;
+  --soft-accent-strong: #6659b7;
+  --soft-accent-subtle: rgba(117, 104, 200, 0.12);
   color-scheme: light;
   font-family:
     -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", system-ui,
@@ -19,8 +22,8 @@ body {
   min-height: 100vh;
   margin: 0;
   background:
-    linear-gradient(122deg, rgba(213, 224, 237, 0.82) 0%, rgba(246, 248, 250, 0.92) 48%, rgba(250, 232, 199, 0.82) 100%),
-    linear-gradient(180deg, #f8fafc 0%, #e8edf4 100%);
+    linear-gradient(122deg, rgba(247, 224, 231, 0.88) 0%, rgba(247, 246, 252, 0.94) 48%, rgba(226, 240, 229, 0.88) 100%),
+    linear-gradient(180deg, #fbfafc 0%, #f0eff7 100%);
 }
 
 button,
@@ -42,9 +45,9 @@ button {
 }
 
 .todo-panel {
-  --paper: #fff5f2;
-  --paper-shadow: rgba(109, 69, 65, 0.14);
-  --paper-edge: rgba(109, 69, 65, 0.22);
+  --paper: #fff4f6;
+  --paper-shadow: rgba(137, 94, 116, 0.16);
+  --paper-edge: rgba(130, 88, 109, 0.24);
   position: relative;
   width: 354px;
   min-height: 410px;
@@ -78,27 +81,27 @@ button {
 }
 
 .todo-panel[data-paper-tone="blue"] {
-  --paper: #f1f8fc;
-  --paper-shadow: rgba(65, 94, 120, 0.14);
-  --paper-edge: rgba(63, 90, 115, 0.24);
+  --paper: #f4f5ff;
+  --paper-shadow: rgba(95, 103, 155, 0.15);
+  --paper-edge: rgba(79, 88, 143, 0.24);
 }
 
 .todo-panel[data-paper-tone="yellow"] {
-  --paper: #fff9e9;
-  --paper-shadow: rgba(117, 93, 41, 0.13);
-  --paper-edge: rgba(111, 86, 35, 0.22);
+  --paper: #fff8eb;
+  --paper-shadow: rgba(150, 119, 67, 0.15);
+  --paper-edge: rgba(130, 99, 49, 0.22);
 }
 
 .todo-panel[data-paper-tone="sage"] {
-  --paper: #f3f9f0;
-  --paper-shadow: rgba(65, 95, 62, 0.13);
-  --paper-edge: rgba(64, 93, 59, 0.22);
+  --paper: #f1faf3;
+  --paper-shadow: rgba(75, 122, 93, 0.15);
+  --paper-edge: rgba(62, 105, 78, 0.22);
 }
 
 .todo-panel[data-paper-tone="lavender"] {
-  --paper: #faf4fd;
-  --paper-shadow: rgba(82, 64, 102, 0.13);
-  --paper-edge: rgba(80, 59, 100, 0.22);
+  --paper: #faf3ff;
+  --paper-shadow: rgba(115, 83, 142, 0.15);
+  --paper-edge: rgba(100, 69, 127, 0.22);
 }
 
 .window-chrome {
@@ -181,9 +184,9 @@ button {
 
 .bookmark-tab,
 .bookmark-add {
-  --tab: #e8bcb5;
-  --tab-ink: #4e302d;
-  --tab-edge: #785049;
+  --tab: #f2bdcb;
+  --tab-ink: #523740;
+  --tab-edge: #8c5a69;
   position: relative;
   width: 66px;
   height: 30px;
@@ -213,27 +216,27 @@ button {
 }
 
 .bookmark-tab[data-paper-tone="blue"] {
-  --tab: #a9c7df;
-  --tab-ink: #21394f;
-  --tab-edge: #49657d;
+  --tab: #bec8f1;
+  --tab-ink: #313963;
+  --tab-edge: #6570aa;
 }
 
 .bookmark-tab[data-paper-tone="yellow"] {
-  --tab: #ecd191;
-  --tab-ink: #4c3b16;
-  --tab-edge: #796334;
+  --tab: #f1d99d;
+  --tab-ink: #58441f;
+  --tab-edge: #94743c;
 }
 
 .bookmark-tab[data-paper-tone="sage"] {
-  --tab: #a9c19e;
-  --tab-ink: #283a22;
-  --tab-edge: #506b49;
+  --tab: #b9d9bf;
+  --tab-ink: #2c4934;
+  --tab-edge: #5e906a;
 }
 
 .bookmark-tab[data-paper-tone="lavender"] {
-  --tab: #c7acd7;
-  --tab-ink: #382745;
-  --tab-edge: #665074;
+  --tab: #d8bce8;
+  --tab-ink: #493358;
+  --tab-edge: #7e5b94;
 }
 
 .bookmark-tab::before,
@@ -357,7 +360,7 @@ button {
 }
 
 .list-title-input:focus-visible {
-  box-shadow: 0 2px 0 rgba(39, 103, 196, 0.28);
+  box-shadow: 0 2px 0 rgba(117, 104, 200, 0.32);
 }
 
 .task-count {
@@ -373,7 +376,7 @@ button {
 }
 
 .task-count .done-count {
-  color: #2563eb;
+  color: var(--soft-accent-strong);
 }
 
 .header-actions {
@@ -409,7 +412,7 @@ button {
 .add-icon:focus-visible,
 .check-button:focus-visible,
 .todo-title:focus-visible {
-  outline: 2px solid rgba(37, 99, 235, 0.36);
+  outline: 2px solid rgba(117, 104, 200, 0.42);
   outline-offset: 2px;
 }
 
@@ -423,10 +426,10 @@ button {
   place-items: center;
   margin-left: 2px;
   border-radius: 999px;
-  color: #2563eb;
+  color: var(--soft-accent);
   background:
     radial-gradient(circle at center, rgba(255, 255, 255, 0.94) 0 55%, transparent 56%),
-    conic-gradient(#2563eb calc(var(--progress) * 1turn), rgba(30, 41, 59, 0.08) 0);
+    conic-gradient(var(--soft-accent) calc(var(--progress) * 1turn), rgba(30, 41, 59, 0.08) 0);
 }
 
 .progress-ring svg {
@@ -534,8 +537,8 @@ button {
 }
 
 .todo-row[data-completed="true"] .check-dot {
-  border-color: rgba(37, 99, 235, 0.22);
-  background: #3b8cf5;
+  border-color: rgba(117, 104, 200, 0.24);
+  background: var(--soft-accent);
 }
 
 .todo-row[data-completed="true"] .check-dot::after {
@@ -585,7 +588,7 @@ button {
   border: 0;
   border-radius: 5px;
   outline: 0;
-  background: rgba(37, 99, 235, 0.08);
+  background: rgba(117, 104, 200, 0.1);
   color: #111827;
   font-size: 14px;
   font-weight: 620;
@@ -650,8 +653,8 @@ button {
 }
 
 .note-input:focus {
-  border-color: rgba(37, 99, 235, 0.22);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.08);
+  border-color: rgba(117, 104, 200, 0.24);
+  box-shadow: 0 0 0 3px rgba(117, 104, 200, 0.1);
 }
 
 .completed-divider {
@@ -719,7 +722,7 @@ button {
 }
 
 .add-icon:hover {
-  background: rgba(37, 99, 235, 0.12);
+  background: var(--soft-accent-subtle);
 }
 
 .add-icon:active {

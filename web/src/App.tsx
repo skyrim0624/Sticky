@@ -17,7 +17,7 @@ import {
 
 const COMPLETION_SOUND_URL = "/sounds/task-complete-bell.wav";
 const COMPLETION_SOUND_DELAYS = [0, 140, 280];
-const CLASSIC_CONFETTI_COLORS = ["#ff3b30", "#ffcc00", "#34c759", "#0a84ff", "#af52de", "#ff9500"];
+const PASTEL_CONFETTI_COLORS = ["#ef8fa3", "#f4c166", "#78c29c", "#7cabe7", "#a188df", "#ec91c2"];
 
 export function App() {
   const completionAudioRef = useRef<HTMLAudioElement | null>(null);
@@ -95,7 +95,7 @@ export function App() {
       scalar: 0.9,
       ticks: 170,
       origin,
-      colors: CLASSIC_CONFETTI_COLORS,
+      colors: PASTEL_CONFETTI_COLORS,
       shapes: ["square", "circle"],
       disableForReducedMotion: true
     });
@@ -109,7 +109,7 @@ export function App() {
         scalar: 0.72,
         ticks: 210,
         origin: { x: origin.x, y: Math.max(origin.y - 0.02, 0.04) },
-        colors: CLASSIC_CONFETTI_COLORS,
+        colors: PASTEL_CONFETTI_COLORS,
         shapes: ["square", "circle"],
         disableForReducedMotion: true
       });

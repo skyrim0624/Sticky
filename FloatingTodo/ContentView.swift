@@ -11,7 +11,7 @@ private enum Theme {
     static let textTertiary = Color.primary.opacity(0.2)
     static let accent = Color.primary
     static let accentSoft = Color.primary.opacity(0.04)
-    static let brand = Color(red: 0.15, green: 0.45, blue: 0.95)
+    static let brand = Color(red: 0.46, green: 0.40, blue: 0.76)
     static let danger = Color.primary.opacity(0.4)
     static let dangerSoft = Color.primary.opacity(0.03)
     static let success = Color.primary.opacity(0.25)
@@ -25,12 +25,12 @@ private enum Theme {
     static let noteBorder = Color.primary.opacity(0.06)
     static let tabText = Color(red: 0.20, green: 0.18, blue: 0.16)
     static let confettiColors: [Color] = [
-        Color(red: 0.98, green: 0.24, blue: 0.31),
-        Color(red: 1.00, green: 0.70, blue: 0.16),
-        Color(red: 0.20, green: 0.78, blue: 0.42),
-        Color(red: 0.10, green: 0.55, blue: 0.96),
-        Color(red: 0.62, green: 0.28, blue: 0.95),
-        Color(red: 0.98, green: 0.38, blue: 0.74)
+        Color(red: 0.94, green: 0.56, blue: 0.64),
+        Color(red: 0.96, green: 0.75, blue: 0.38),
+        Color(red: 0.47, green: 0.76, blue: 0.61),
+        Color(red: 0.49, green: 0.67, blue: 0.92),
+        Color(red: 0.63, green: 0.53, blue: 0.87),
+        Color(red: 0.94, green: 0.56, blue: 0.77)
     ]
 
 }
@@ -52,12 +52,12 @@ private enum NotebookPaperPalette {
     static func style(hue: Double?) -> NotebookPaperStyle {
         let hue = hue ?? defaultHue
         return NotebookPaperStyle(
-            paper: Color(hue: hue, saturation: 0.065, brightness: 0.99),
-            paperHighlight: Color(hue: hue, saturation: 0.018, brightness: 1.0),
-            tab: Color(hue: hue, saturation: 0.27, brightness: 0.88),
-            tabEdge: Color(hue: hue, saturation: 0.22, brightness: 0.47),
-            ink: Color(hue: hue, saturation: 0.18, brightness: 0.22),
-            composerControl: Color(hue: hue, saturation: 0.15, brightness: 0.91)
+            paper: Color(hue: hue, saturation: 0.11, brightness: 0.99),
+            paperHighlight: Color(hue: hue, saturation: 0.035, brightness: 1.0),
+            tab: Color(hue: hue, saturation: 0.34, brightness: 0.94),
+            tabEdge: Color(hue: hue, saturation: 0.24, brightness: 0.54),
+            ink: Color(hue: hue, saturation: 0.16, brightness: 0.25),
+            composerControl: Color(hue: hue, saturation: 0.19, brightness: 0.95)
         )
     }
 }
